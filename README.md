@@ -9,6 +9,7 @@ Bindings (PoC) for [Microsoft WinDBG Time Travel Debugging (TTD)](https://docs.m
 * `TTD/` is the main wrapper. `TTDReplay.dll` and `TTDReplayCPU.dll` (from WinDBG Preview, at least v1.2111) must be present in the same directory than the executable
 * `example_api/` highlights some of the wrapping
 * `example_diff/` shows how to use the wrapping to perform naive trace diffing
+* `example_calltree/` produces a call tree of a trace excerpt
 
 After performing one or several traces using Windbg Preview, one can open the `.run` file:
 ```C++
@@ -50,6 +51,10 @@ Currently, the wrapping system supports:
 * Replaying forward and backward
 * Adding a callback for "CallRet"
 * Memory breakpoints (R/W/X)
+* During a callback, getting:
+    * Returned value
+    * Current position
+    * Current PC
 
 ## Exemple: diffing path in a trace
 
@@ -191,6 +196,83 @@ samsrv!SampAssignPrimaryGroup+0xb4:
 0d 000000f0`006ff740 00007ffb`0fff7974     NTDSATQ!AtqPoolThread+0x1a4
 0e 000000f0`006ff7d0 00007ffb`10f0a2f1     KERNEL32!BaseThreadInitThunk+0x14
 0f 000000f0`006ff800 00000000`00000000     ntdll!RtlUserThreadStart+0x21
+```
+
+## Exemple: call tree
+
+In order to get a quick idea of what functions are called in a trace, one can write a tool which:
+
+* register a `CallRetCallback`:
+    * tracking the call stack depth
+    * printing the callee function
+    * printing the returned address 
+* run through a part of the trace
+
+To make a more usable trace, one can also:
+
+* print the position in the trace, to ease further investigation
+* print the returned value
+* use symbols (relative to the trace's modules, ie. even if not present on the system) to resolve addresses
+
+`example_calltree` implements theses features.
+Here is an example on the same `lsass` trace:
+
+```bash
+# Run the tool
+example_calltree.exe -b 177B:3E -e 1B76:31 D:\traces\lsass01.run > out.txt
+# ~1.5 second, for ~25K entries
+
+# Whole trace would have needed ~7.5 seconds for ~140K entries
+```
+
+Outputs:
+
+```
+Openning the trace
+ModuleList:
+256064a0000     3000    C:\Windows\system32\msprivs.DLL
+7ff7f5710000    11000   C:\Windows\system32\lsass.exe
+7ffae3170000    171000  C:\ProgramData\Microsoft\Windbg\0-0-0\TTD\TTDRecordCPU.dll
+7ffaf3ea0000    22000   C:\Windows\SYSTEM32\certpoleng.dll
+7ffaf3fe0000    1a000   C:\Windows\system32\keyiso.dll
+
+...
+
+-> ntdsai!LDAP_CONN::ModifyRequest (7ffb0b9aa010) [177b:3e]
+| -> ntdsai!memset (7ffb0baad676) [177b:5e]
+| <- ntdsai!+2a0bb (7ffb0b9aa0bb) [177b:a0] RETURN f0006fe550
+| -> ntdsai!memset (7ffb0baad676) [177b:a4]
+| <- ntdsai!+2a0d0 (7ffb0b9aa0d0) [177b:118] RETURN f0006fe6b0
+| -> ntdsai!THREAD_STOPWATCH::Start (7ffb0b9ad920) [177b:126]
+| | -> ntdsai!THGetThreadCpuTime (7ffb0ba1c13c) [177b:12a]
+| | | -> KERNEL32!GetCurrentThread (7ffb0fff57f0) [177b:12c]
+| | | <- ntdsai!+9c146 (7ffb0ba1c146) [177b:12e] RETURN fffffffffffffffe
+| | | -> KERNEL32!GetThreadTimesStub (7ffb0fff9a80) [177b:135]
+| | | | -> ntdll!NtQueryInformationThread (7ffb10f4fe80) [177b:147]
+| | | | <- KERNELBASE!+69a76 (7ffb0d609a76) [177d:0] RETURN 0
+| | | | -> KERNELBASE!_security_check_cookie (7ffb0d628890) [177d:f]
+| | | | <- KERNELBASE!+69ab5 (7ffb0d609ab5) [177d:15] RETURN 1
+| | | <- ntdsai!+9c168 (7ffb0ba1c168) [177d:1b] RETURN 1
+| | <- ntdsai!+2d92e (7ffb0b9ad92e) [177d:21] RETURN 2625a0
+| | -> KERNELBASE!GetTickCount (7ffb0d5f8fd0) [177d:23]
+| | <- ntdsai!+2d938 (7ffb0b9ad938) [177d:29] RETURN daa1b
+| <- ntdsai!+2a11b (7ffb0b9aa11b) [177d:2e] RETURN daa1b
+| -> ntdsai!LDAP_CONN::IsBound (7ffb0b9aa7f0) [177d:32]
+| <- ntdsai!+2a12b (7ffb0b9aa12b) [177d:3b] RETURN 1
+| -> ntdsai!memset (7ffb0baad676) [177d:44]
+| <- ntdsai!+2a15b (7ffb0b9aa15b) [177d:b8] RETURN f0006fe6b0
+| -> ntdsai!InitCommarg (7ffb0b9f6fc0) [177d:bb]
+| | -> ntdsai!memset (7ffb0baad676) [177d:c1]
+| | <- ntdsai!+76fd6 (7ffb0b9f6fd6) [177d:f3] RETURN f0006fe6b0
+| <- ntdsai!+2a170 (7ffb0b9aa170) [177d:102] RETURN 400a
+| -> ntdsai!LDAP_LogAPIEntry (7ffb0ba1d6d4) [177e:3]
+| | -> KERNEL32!TlsGetValueStub (7ffb0fff5250) [177e:11]
+| | <- ntdsai!+9d714 (7ffb0ba1d714) [177e:19] RETURN 25606fb0cf0
+| | -> ntdsai!SetActiveThreadStateInfoStringA (7ffb0ba1eb8c) [177e:1c]
+| | | -> ntdsai!DsaSafeMult (7ffb0ba1eb30) [177e:33]
+| | | <- ntdsai!+9ebe0 (7ffb0ba1ebe0) [177e:4b] RETURN c8
+
+...
 ```
 
 ## References
