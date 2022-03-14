@@ -6,12 +6,21 @@
 
 /*
 @callback_value: value passed at callback registering
-@addr_func: called function address
-@addr_ret: return address after the call
+2 cases:
+	@addr_func: called function address
+	@addr_ret: return address after the call
+OR
+	@addr_ret is 0
+	@addr_func is the current returned address
 */
 void callCallback(unsigned __int64 callback_value, TTD::GuestAddress addr_func, TTD::GuestAddress addr_ret, struct TTD::TTD_Replay_IThreadView* thread_info) {
 	printf("[CALL CALLBACK] ");
 	printf("arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n", callback_value, addr_func, addr_ret, thread_info);
+	TTD::Position* current = thread_info->IThreadView->GetPosition(thread_info);
+	printf("Program counter: %llx | Position: %llx:%llx\n", thread_info->IThreadView->GetProgramCounter(thread_info), current->Major, current->Minor);
+	if (addr_ret == 0) {
+		printf("Returned value: %llx\n", thread_info->IThreadView->GetBasicReturnValue(thread_info));
+	}
 	return;
 }
 

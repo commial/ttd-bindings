@@ -88,7 +88,7 @@ namespace TTD {
 	} TTD_Replay_ICursorView_ReplayResult;
 
 	typedef struct TTD_Replay_IThreadView {
-
+		struct TTD_Replay_IThreadView_vftable* IThreadView;
 	} TTD_Replay_IThreadView;
 
 	typedef struct TTD_Replay_MemoryWatchpointData {
@@ -346,6 +346,35 @@ namespace TTD {
 	typedef struct TTD_Replay_ReplayEngine {
 		TTD_Replay_IReplayEngine_vftable* IReplayEngine;
 	} TTD_Replay_ReplayEngine;
+
+	typedef struct TTD_Replay_IThreadView_vftable {
+		// TTD::Replay::ExecutionState::GetThreadInfo(void)
+		void* unk1;
+		// offset TTD::Replay::ExecutionState::GetTebAddress(void)
+		void* unk2;
+		Position* (*GetPosition)(TTD_Replay_IThreadView* self);
+		// TTD::Replay::ExecutionState::GetPreviousPosition(void)
+		void* unk4;
+		GuestAddress (*GetProgramCounter)(TTD_Replay_IThreadView* self);
+		// TTD::Replay::ExecutionState::GetStackPointer(void)
+		void* unk6;
+		// TTD::Replay::ExecutionState::GetFramePointer(void)
+		void* unk7;
+		unsigned __int64 (*GetBasicReturnValue)(TTD_Replay_IThreadView* self);
+		// TTD::Replay::ExecutionState::GetCrossPlatformContext(void)
+		void* unk9;
+		// TTD::Replay::ExecutionState::GetAvxExtendedContext(void)
+		void* unk10;
+		// TTD::Replay::ExecutionState::QueryMemoryRange(Nirvana::GuestAddress)
+		void* unk11;
+		// TTD::Replay::ExecutionState::QueryMemoryBuffer(Nirvana::GuestAddress, TTD::TBufferView<0>)
+		void* unk12;
+		// TTD::Replay::ExecutionState::QueryMemoryBufferWithRanges(Nirvana::GuestAddress, TTD::TBufferView<0>, unsigned __int64, TTD::Replay::MemoryRange*)
+		void* unk13;
+		// Destructor
+		void* unk14;
+	} TTD_Replay_IThreadView_vftable;
+
 
 	typedef unsigned int(__cdecl* PROC_Initiate)(const char* seed, BYTE* b64rand_out);
 	typedef unsigned int(__cdecl* PROC_Create)(const char* handshake, void* ReplayEngine_out, BYTE* guid_version);
