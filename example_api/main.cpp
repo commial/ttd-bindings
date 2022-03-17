@@ -29,7 +29,7 @@ int main()
 	TTD::ReplayEngine ttdengine = TTD::ReplayEngine();
 	int result;
 
-	std::cout << "Openning the trace";
+	std::cout << "Openning the trace\n";
 	result = ttdengine.Initialize(L"D:\\traces\\demo.run");
 	if (result == 0) {
 		std::cout << "Fail to open the trace";
