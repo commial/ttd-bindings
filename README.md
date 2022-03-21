@@ -10,6 +10,7 @@ Bindings (PoC) for [Microsoft WinDBG Time Travel Debugging (TTD)](https://docs.m
 * `example_api/` highlights some of the wrapping
 * `example_diff/` shows how to use the wrapping to perform naive trace diffing
 * `example_calltree/` produces a call tree of a trace excerpt
+* `python-bindings/` provides Python bindings over TTD
 
 After performing one or several traces using Windbg Preview, one can open the `.run` file:
 ```C++
@@ -274,6 +275,48 @@ ModuleList:
 
 ...
 ```
+
+## Python
+
+### Setup
+
+Either:
+
+* use the latest `pyTTD.pyd` [release](https://github.com/commial/ttd-bindings/releases/latest)
+* or compile the `python-bindings` project.
+
+### Usage
+
+With `pyTTD.pyd`, `TTDReplay.dll` and `TTDReplayCPU.dll` in the directory, one can import `pyTTD`:
+
+```python
+import pyTTD
+
+# Open the trace
+eng = pyTTD.ReplayEngine()
+eng.initialize("D:\\traces\\trace.run")
+
+# Get positions
+first = eng.get_first_position()
+last = eng.get_last_position()
+print(f"Trace from {first} to {last}")
+
+# Get a cursor
+cursor = eng.new_cursor()
+cursor.set_position(first)
+
+# Retrieve PC
+print(f"PC: {cursor.get_program_counter():x}")
+
+# Print RCX
+ctxt = cursor.get_crossplatform_context()
+print("RCX: %x" % ctxt.rcx)
+
+# Read the memory at RCX on 16 bytes
+print("@128[RCX]: %s" % cursor.read_mem(ctxt.rcx, 16))
+```
+
+More API example are available in `example_api/example_api.py`.
 
 ## References
 
