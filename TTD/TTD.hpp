@@ -102,6 +102,13 @@ namespace TTD {
 		EXEC = 4
 	};
 
+	typedef struct TTD_Replay_ActiveThreadInfo {
+		TTD_Replay_ThreadInfo* info;
+		uint64_t unk1;
+		uint64_t unk2;
+		uint64_t unk3;
+		uint64_t unk4;
+	}TTD_Replay_ActiveThreadInfo;
 	/*
 	*(_QWORD *)this = &TTD::Replay::Cursor::`vftable'{for `TTD::Replay::ICursor'};
 	  *((_QWORD *)this + 1) = &TTD::Replay::Cursor::`vftable'{for `TTD::Replay::ICursorInternals'};
@@ -138,15 +145,14 @@ namespace TTD {
 		void* unk15;
 		//  unsigned __int64 (__stdcall __high *_GetBasicReturnValue_Cursor_Replay_TTD__UEBA_KW4ThreadId_3__Z)(enum TTD::ThreadId);
 		void* unk16;
-		struct TTD_Replay_RegisterContext* (__stdcall* GetCrossPlatformContext)(TTD_Replay_ICursor* self, struct TTD_Replay_RegisterContext* out);
+		struct TTD_Replay_RegisterContext* (__stdcall* GetCrossPlatformContext)(TTD_Replay_ICursor* self, struct TTD_Replay_RegisterContext* out, uint32_t threadId);
 		struct TTD_Replay_ExtendedRegisterContext* (__stdcall* GetAvxExtendedContext)(TTD_Replay_ICursor* self, struct TTD_Replay_ExtendedRegisterContext* out);
 		//  unsigned __int64 (__fastcall *_GetModuleCount_Cursor_Replay_TTD__UEBA_KXZ)(TTD::Replay::Cursor *__hidden this);
-		void* unk19;
+		unsigned __int64(__fastcall* GetModuleCount)(TTD_Replay_ICursor* self);
 		//  const struct TTD::Replay::ModuleInstance *(__fastcall *_GetModuleList_Cursor_Replay_TTD__UEBAPEBUModuleInstance_23_XZ)(TTD::Replay::Cursor *__hidden this);
-		void* unk20;
+		struct TTD_Replay_ModuleInstance* (__fastcall* GetModuleList)(TTD_Replay_ICursor* self);
 		unsigned __int64(__fastcall* GetThreadCount)(TTD_Replay_ICursor* self);
-		//  const struct TTD::Replay::ActiveThreadInfo *(__fastcall *_GetThreadList_Cursor_Replay_TTD__UEBAPEBUActiveThreadInfo_23_XZ)(TTD::Replay::Cursor *__hidden this);
-		void* unk22;
+		struct TTD_Replay_ActiveThreadInfo* (__fastcall* GetThreadList)(TTD_Replay_ICursor* self);
 		void(__fastcall* SetEventMask)(TTD_Replay_ICursor* self, DWORD eventMask);
 		//  enum EventMask (__fastcall *_GetEventMask_Cursor_Replay_TTD__UEBA_AW4EventMask_23_XZ)(TTD::Replay::Cursor *__hidden this);
 		void* unk24;
@@ -385,7 +391,9 @@ namespace TTD {
 	private:
 		TTD_Replay_ICursor* cursor;
 	public:
-		Cursor(TTD_Replay_ICursor* input) { cursor = input; }
+		explicit Cursor(TTD_Replay_ICursor* input) { cursor = input; }
+		Cursor(const Cursor&) = default;
+		Cursor& operator=(const Cursor&) = default;
 
 		/**** Wrapping around the vftable ****/
 		void SetPosition(Position* position);
@@ -396,14 +404,17 @@ namespace TTD {
 		GuestAddress GetProgramCounter();
 		GuestAddress GetProgramCounter(unsigned int ThreadId);
 		struct TTD_Replay_ThreadInfo* GetThreadInfo();
+		struct TTD_Replay_ActiveThreadInfo* GetThreadList();
 		struct TTD_Replay_ThreadInfo* GetThreadInfo(unsigned int ThreadId);
-		struct TTD_Replay_RegisterContext* GetCrossPlatformContext();
+		struct TTD_Replay_RegisterContext* GetCrossPlatformContext(uint32_t threadId);
 		struct MemoryBuffer* QueryMemoryBuffer(GuestAddress address, unsigned __int64 size);
 		struct TTD_Replay_ICursorView_ReplayResult* ReplayForward(struct TTD_Replay_ICursorView_ReplayResult* replay_result_out, struct Position* posMax, unsigned __int64 stepCount);
 		struct TTD_Replay_ICursorView_ReplayResult* ReplayBackward(struct TTD_Replay_ICursorView_ReplayResult* replay_result_out, struct Position* posMin, unsigned __int64 stepCount);
 		void SetCallReturnCallback(PROC_CallCallback callCallback, unsigned __int64 callback_value);
 		bool AddMemoryWatchpoint(TTD_Replay_MemoryWatchpointData* data);
 		bool RemoveMemoryWatchpoint(TTD_Replay_MemoryWatchpointData* data);
+		unsigned __int64 GetModuleCount();
+		struct TTD_Replay_ModuleInstance* GetModuleList();
 	};
 
 	class ReplayEngine {
