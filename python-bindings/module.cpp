@@ -33,6 +33,10 @@ PYBIND11_MODULE(pyTTD, m) {
         .def_property("threadid", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
             return self.info->threadid;
         }, nullptr)
+        .def_readonly("next_major", &TTD::TTD_Replay_ActiveThreadInfo::nextMajor)
+        .def_readonly("next_minor", &TTD::TTD_Replay_ActiveThreadInfo::nextMinor)
+        .def_readonly("last_major", &TTD::TTD_Replay_ActiveThreadInfo::lastMajor)
+        .def_readonly("last_minor", &TTD::TTD_Replay_ActiveThreadInfo::lastMinor);
 
     py::class_<TTD::TTD_Replay_RegisterContext, std::unique_ptr<TTD::TTD_Replay_RegisterContext, py::nodelete>>(m, "RegisterContext")
         .def_readonly("cs", &TTD::TTD_Replay_RegisterContext::cs)
