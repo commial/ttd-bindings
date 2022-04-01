@@ -30,6 +30,11 @@ namespace TTD {
 		return this->cursor->ICursor->GetProgramCounter(cursor, ThreadId);
 	}
 
+	struct TTD_Replay_ActiveThreadInfo* Cursor::GetThreadList()
+	{
+		return this->cursor->ICursor->GetThreadList(cursor);
+	}
+
 	struct TTD_Replay_ThreadInfo* Cursor::GetThreadInfo() {
 		return this->GetThreadInfo(0);
 	}
@@ -37,9 +42,14 @@ namespace TTD {
 		return this->cursor->ICursor->GetThreadInfo(cursor, ThreadId);
 	}
 
-	struct TTD_Replay_RegisterContext* Cursor::GetCrossPlatformContext() {
+	struct TTD_Replay_RegisterContext* Cursor::GetCrossPlatformContext()
+	{
+		return this->GetCrossPlatformContext(0);
+	}
+
+	struct TTD_Replay_RegisterContext* Cursor::GetCrossPlatformContext(uint32_t threadId) {
 		TTD_Replay_RegisterContext* ctxt = (TTD_Replay_RegisterContext*)malloc(0xA70);
-		return this->cursor->ICursor->GetCrossPlatformContext(cursor, ctxt);
+		return this->cursor->ICursor->GetCrossPlatformContext(cursor, ctxt, threadId);
 	}
 
 	struct MemoryBuffer* Cursor::QueryMemoryBuffer(GuestAddress address, unsigned __int64 size) {
@@ -79,6 +89,15 @@ namespace TTD {
 
 	bool Cursor::RemoveMemoryWatchpoint(TTD_Replay_MemoryWatchpointData* data) {
 		return this->cursor->ICursor->RemoveMemoryWatchpoint(cursor, data);
+	}
+
+	unsigned __int64 Cursor::GetModuleCount()
+	{
+		return this->cursor->ICursor->GetModuleCount(cursor);
+	}
+	struct TTD_Replay_ModuleInstance* Cursor::GetModuleList()
+	{
+		return this->cursor->ICursor->GetModuleList(cursor);
 	}
 
 	ReplayEngine::ReplayEngine() {
