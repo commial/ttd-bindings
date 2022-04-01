@@ -28,7 +28,15 @@ PYBIND11_MODULE(pyTTD, m) {
         .def_readonly("path", &TTD::TTD_Replay_Module::path);
 
     py::class_<TTD::TTD_Replay_ThreadInfo, std::unique_ptr<TTD::TTD_Replay_ThreadInfo, py::nodelete>>(m, "ThreadInfo")
-        .def_readonly("threadid", &TTD::TTD_Replay_ThreadInfo::threadid);
+        .def_readonly("threadid", &TTD::TTD_Replay_ThreadInfo::threadid); 
+    py::class_<TTD::TTD_Replay_ActiveThreadInfo, std::unique_ptr<TTD::TTD_Replay_ActiveThreadInfo, py::nodelete>>(m, "ActiveThreadInfo")
+        .def_property("threadid", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
+            return self.info->threadid;
+        }, nullptr)
+        .def_readonly("next_major", &TTD::TTD_Replay_ActiveThreadInfo::nextMajor)
+        .def_readonly("next_minor", &TTD::TTD_Replay_ActiveThreadInfo::nextMinor)
+        .def_readonly("last_major", &TTD::TTD_Replay_ActiveThreadInfo::lastMajor)
+        .def_readonly("last_minor", &TTD::TTD_Replay_ActiveThreadInfo::lastMinor);
 
     py::class_<TTD::TTD_Replay_RegisterContext, std::unique_ptr<TTD::TTD_Replay_RegisterContext, py::nodelete>>(m, "RegisterContext")
         .def_readonly("cs", &TTD::TTD_Replay_RegisterContext::cs)
@@ -72,10 +80,13 @@ PYBIND11_MODULE(pyTTD, m) {
     py::class_<TTD::Cursor>(m, "Cursor")
         .def("set_position", py::overload_cast<TTD::Position*>(&TTD::Cursor::SetPosition), py::arg("position"))
         .def("set_position", py::overload_cast<unsigned __int64, unsigned __int64>(&TTD::Cursor::SetPosition), py::arg("Major"), py::arg("Minor"))
+        .def("get_position", py::overload_cast<>(&TTD::Cursor::GetPosition))
+        .def("get_position", py::overload_cast<uint32_t>(&TTD::Cursor::GetPosition), py::arg("threadid"))
         .def("get_thread_count", &TTD::Cursor::GetThreadCount)
         .def("get_program_counter", py::overload_cast<>(&TTD::Cursor::GetProgramCounter))
         .def("get_thread_info", py::overload_cast<>(&TTD::Cursor::GetThreadInfo))
-        .def("get_crossplatform_context", &TTD::Cursor::GetCrossPlatformContext)
+        .def("get_crossplatform_context", py::overload_cast<>(&TTD::Cursor::GetCrossPlatformContext))
+        .def("get_crossplatform_context", py::overload_cast<uint32_t>(&TTD::Cursor::GetCrossPlatformContext), py::arg("threadid"))
         .def("read_mem", [](TTD::Cursor &self, TTD::GuestAddress addr, unsigned __int64 size) {
             TTD::MemoryBuffer *membuf = self.QueryMemoryBuffer(addr, size);
             std::string x((char*) membuf->data, membuf->size);
@@ -94,8 +105,25 @@ PYBIND11_MODULE(pyTTD, m) {
             return replayrez.stepCount;
         })
         .def("add_memory_watchpoint", &TTD::Cursor::AddMemoryWatchpoint)
-        .def("remove_memory_watchpoint", &TTD::Cursor::RemoveMemoryWatchpoint);
-
+        .def("remove_memory_watchpoint", &TTD::Cursor::RemoveMemoryWatchpoint)
+        .def("get_module_count", &TTD::Cursor::GetModuleCount)
+        .def("get_module_list", [](TTD::Cursor& self) {
+            std::vector<TTD::TTD_Replay_Module> mods;
+            TTD::TTD_Replay_ModuleInstance* mod_list = self.GetModuleList();
+            for (int i = 0; i < self.GetModuleCount(); i++) {
+                mods.push_back(*mod_list[i].module);
+            }
+            return mods;
+        })
+        .def("get_thread_list", [](TTD::Cursor& self) {
+            std::vector<TTD::TTD_Replay_ActiveThreadInfo> threads;
+            TTD::TTD_Replay_ActiveThreadInfo* thread_list = self.GetThreadList();
+            for (int i = 0; i < self.GetThreadCount(); i++) {
+                threads.push_back(thread_list[i]);
+            }
+            return threads;
+        });
+        
     py::class_<TTD::ReplayEngine>(m, "ReplayEngine")
         .def(py::init<>())
         .def("initialize", &TTD::ReplayEngine::Initialize, py::arg("trace_filename"))

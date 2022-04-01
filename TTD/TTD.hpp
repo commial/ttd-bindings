@@ -104,10 +104,12 @@ namespace TTD {
 
 	typedef struct TTD_Replay_ActiveThreadInfo {
 		TTD_Replay_ThreadInfo* info;
-		uint64_t unk1;
-		uint64_t unk2;
-		uint64_t unk3;
-		uint64_t unk4;
+		// next Major:Minor position where this thread is active
+		uint64_t nextMajor;
+		uint64_t nextMinor;
+		// last Major:Minor position where this thread was active
+		uint64_t lastMajor;
+		uint64_t lastMinor;
 	}TTD_Replay_ActiveThreadInfo;
 	/*
 	*(_QWORD *)this = &TTD::Replay::Cursor::`vftable'{for `TTD::Replay::ICursor'};

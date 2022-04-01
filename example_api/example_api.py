@@ -31,6 +31,25 @@ print(f"Modules ({eng.get_module_count()}):")
 for mod in sorted(eng.get_module_list(), key=lambda x: x.base_addr):
     print(f"\t0x{mod.base_addr:x} - 0x{mod.base_addr + mod.image_size:x}\t{mod.path}")
 
+# Print Thread active zones
+print(f"Threads ({cursor.get_thread_count()}):")
+## Save the current position
+position_save = cursor.get_position()
+## Get Threads' starting position
+threads = {} # Thread ID => {"begin": position, "end": position}
+cursor.set_position(first)
+for thread in cursor.get_thread_list():
+    threads.setdefault(thread.threadid, {})["begin"] = f"{thread.next_major:x}:{thread.next_minor:x}"
+## Get Threads' ending position
+cursor.set_position(last)
+for thread in cursor.get_thread_list():
+    threads.setdefault(thread.threadid, {})["end"] = f"{thread.last_major:x}:{thread.last_minor:x}"
+## Restore saved position
+cursor.set_position(position_save)
+## Print out the resulting ranges
+for threadid, info in threads.items():
+    print(f"\t[0x{threadid:x}] {info['begin']} -> {info['end']}")
+
 # Read the memory
 print("@128[RCX]: %s" % cursor.read_mem(ctxt.rcx, 16))
 print("@128[RCX+4]: %s" % cursor.read_mem(ctxt.rcx + 4, 16))
