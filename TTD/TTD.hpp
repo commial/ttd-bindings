@@ -406,6 +406,7 @@ namespace TTD {
 		struct TTD_Replay_ThreadInfo* GetThreadInfo();
 		struct TTD_Replay_ActiveThreadInfo* GetThreadList();
 		struct TTD_Replay_ThreadInfo* GetThreadInfo(unsigned int ThreadId);
+		struct TTD_Replay_RegisterContext* GetCrossPlatformContext();
 		struct TTD_Replay_RegisterContext* GetCrossPlatformContext(uint32_t threadId);
 		struct MemoryBuffer* QueryMemoryBuffer(GuestAddress address, unsigned __int64 size);
 		struct TTD_Replay_ICursorView_ReplayResult* ReplayForward(struct TTD_Replay_ICursorView_ReplayResult* replay_result_out, struct Position* posMax, unsigned __int64 stepCount);

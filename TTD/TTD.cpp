@@ -42,6 +42,11 @@ namespace TTD {
 		return this->cursor->ICursor->GetThreadInfo(cursor, ThreadId);
 	}
 
+	struct TTD_Replay_RegisterContext* Cursor::GetCrossPlatformContext()
+	{
+		return this->GetCrossPlatformContext(0);
+	}
+
 	struct TTD_Replay_RegisterContext* Cursor::GetCrossPlatformContext(uint32_t threadId) {
 		TTD_Replay_RegisterContext* ctxt = (TTD_Replay_RegisterContext*)malloc(0xA70);
 		return this->cursor->ICursor->GetCrossPlatformContext(cursor, ctxt, threadId);
