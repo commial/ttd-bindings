@@ -96,6 +96,7 @@ namespace TTD {
 		unsigned __int64 size;
 		unsigned __int64 flags;
 	} TTD_Replay_MemoryWatchpointData;
+
 	const enum BP_FLAGS {
 		WRITE = 2,
 		READ = 3,

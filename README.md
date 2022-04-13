@@ -318,6 +318,52 @@ print("@128[RCX]: %s" % cursor.read_mem(ctxt.rcx, 16))
 
 More API example are available in `example_api/example_api.py`.
 
+## Build
+
+`ttd-bindings` use cmake as build system.
+To build all targets simple use :
+
+```
+git clone https://github.com/commial/ttd-bindings
+mkdir build_ttd_bindings
+cd build_ttd_bindings
+cmake ..\ttd-bindings
+```
+
+If you want to build example binaries :
+
+```
+git clone https://github.com/commial/ttd-bindings
+mkdir build_ttd_bindings
+cd build_ttd_bindings
+cmake ..\ttd-bindings -DBUILD_TESTS=ON
+```
+
+If you want to build python bindings, you need to install `pybind11` package for all users (Admin rights):
+
+```
+pip install pybind11
+```
+
+Then you can build ttd-bindings:
+
+```
+git clone https://github.com/commial/ttd-bindings
+mkdir build_ttd_bindings
+cd build_ttd_bindings
+cmake ..\ttd-bindings -DBUILD_PYTHON_BINDINGS=ON
+```
+
+If you want to manage the path to `pybind11` :
+
+
+```
+git clone https://github.com/commial/ttd-bindings
+mkdir build_ttd_bindings
+cd build_ttd_bindings
+cmake ..\ttd-bindings -DBUILD_PYTHON_BINDINGS=ON -DPyBind_SOURCE_DIR=[PATH_TO_ROOT_GITHUB]
+```
+
 ## References
 
 * [MSDN - Time Travel Debugging - Overview](https://docs.microsoft.com/en-us/windows-hardware/drivers/debugger/time-travel-debugging-overview)
