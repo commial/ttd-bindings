@@ -26,7 +26,7 @@ typedef struct _CV_INFO_PDB70 {
 BOOL readMemory(void* dest, TTD::GuestAddress addr, unsigned __int64 size, TTD::Cursor* cursor) {
 	BOOL result = TRUE;
 	struct TTD::MemoryBuffer* memorybuffer = cursor->QueryMemoryBuffer(addr, size);
-	if (memorybuffer->data == NULL or memorybuffer->size != size) {
+	if (memorybuffer->data == NULL || memorybuffer->size != size) {
 		result = FALSE;
 	}
 	else {
