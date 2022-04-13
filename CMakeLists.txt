@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.11)
 project(ttd-bindings LANGUAGES CXX VERSION 1.0.0)
 
 # Opions
-option(BUILD_TESTS "Build test programs" OFF)
-option(BUILD_PYTHON_BINDINGS "Build python bindings" ON)
+option(BUILD_EXAMPLES "Build examples programs" OFF)
+option(BUILD_PYTHON_BINDINGS "Build python bindings" OFF)
 option(INSTALL_TTDDLL "Try to find and install ttd dll from Windbg Preview install folder" ON)
 
 # Config
@@ -28,11 +28,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 add_subdirectory(TTD)
 
 # Tests
-if(BUILD_TESTS)
+if(BUILD_EXAMPLES)
     add_subdirectory(example_api)
     add_subdirectory(example_calltree)
     add_subdirectory(example_diff)
-endif(BUILD_TESTS)
+endif(BUILD_EXAMPLES)
 
 if(BUILD_PYTHON_BINDINGS)
 	add_subdirectory(python-bindings)
@@ -42,6 +42,6 @@ endif(BUILD_PYTHON_BINDINGS)
 message(STATUS "Configuration summary")
 message(STATUS "Project name                 : ${PROJECT_NAME}")
 message(STATUS "Project version              : ${PROJECT_VERSION}")
-message(STATUS "Build Tests              	 : ${BUILD_TESTS}")
+message(STATUS "Build Examples             	 : ${BUILD_EXAMPLES}")
 message(STATUS "Build Python Bindings      	 : ${BUILD_PYTHON_BINDINGS}")
 message(STATUS "Install ttd dlls    	 	 : ${INSTALL_TTDDLL}")

@@ -2,7 +2,6 @@
 # Create python bindings library pyTTD.pyd #
 ############################################
 
-find_package(Python3 COMPONENTS Interpreter Development)
 find_package(PyBind)
 
 set(PYTHON_BINDINGS_SRC

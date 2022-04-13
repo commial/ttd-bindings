@@ -2,14 +2,13 @@
 # Find PyBind use to create python bindings #
 #############################################
 
-if(PyBind_SOURCE_DIR)
-	find_path(PyBind_SOURCE_ROOT
+find_package(Python3 COMPONENTS Interpreter Development)
+
+find_path(PyBind_SOURCE_ROOT
 	NAMES include/pybind11/pybind11.h
-	PATHS "${PyBind_SOURCE_DIR}"
-	NO_DEFAULT_PATH)
-else()
-	set(PyBind_SOURCE_ROOT PyBind_SOURCE_ROOT-NOTFOUND)
-endif()
+	PATHS "${PyBind_SOURCE_DIR}" "${Python3_SITELIB}/pybind11"
+	NO_DEFAULT_PATH
+)
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(
