@@ -172,7 +172,67 @@ namespace TTD {
 		return this->engine->IReplayEngine->GetModuleCount(engine);
 	}
 
-	struct TTD_Replay_Module* ReplayEngine::GetModuleList() {
+	const TTD_Replay_Module* ReplayEngine::GetModuleList() {
 		return this->engine->IReplayEngine->GetModuleList(engine);
+	}
+
+	unsigned __int64  ReplayEngine::GetModuleLoadedEventCount()
+	{
+		return this->engine->IReplayEngine->GetModuleLoadedEventCount(engine);
+	}
+
+	const TTD_Replay_ModuleLoadedEvent* ReplayEngine::GetModuleLoadedEventList()
+	{
+		return this->engine->IReplayEngine->GetModuleLoadedEventList(engine);
+	}
+
+	const std::vector<TTD_Replay_ModuleLoadedEvent> ReplayEngine::GetModuleLoadedEvent()
+	{
+		return std::vector<TTD_Replay_ModuleLoadedEvent>(this->GetModuleLoadedEventList(), this->GetModuleLoadedEventList() + this->GetModuleLoadedEventCount());
+	}
+
+	unsigned __int64 ReplayEngine::GetModuleUnloadedEventCount()
+	{
+		return this->engine->IReplayEngine->GetModuleUnloadedEventCount(engine);
+	}
+
+	const TTD_Replay_ModuleUnloadedEvent* ReplayEngine::GetModuleUnloadedEventList()
+	{
+		return this->engine->IReplayEngine->GetModuleUnloadedEventList(engine);
+	}
+
+	const std::vector<TTD_Replay_ModuleUnloadedEvent> ReplayEngine::GetModuleUnloadedEvent()
+	{
+		return std::vector<TTD_Replay_ModuleUnloadedEvent>(this->GetModuleUnloadedEventList(), this->GetModuleUnloadedEventList() + this->GetModuleUnloadedEventCount());
+	}
+
+	unsigned __int64 ReplayEngine::GetThreadCreatedEventCount()
+	{
+		return this->engine->IReplayEngine->GetThreadCreatedEventCount(engine);
+	}
+
+	const TTD_Replay_ThreadCreatedEvent* ReplayEngine::GetThreadCreatedEventList()
+	{
+		return this->engine->IReplayEngine->GetThreadCreatedEventList(engine);
+	}
+
+	const std::vector<TTD_Replay_ThreadCreatedEvent> ReplayEngine::GetThreadCreatedEvent()
+	{
+		return std::vector<TTD_Replay_ThreadCreatedEvent>(this->GetThreadCreatedEventList(), this->GetThreadCreatedEventList() + this->GetThreadCreatedEventCount());
+	}
+
+	unsigned __int64 ReplayEngine::GetThreadTerminatedEventCount()
+	{
+		return this->engine->IReplayEngine->GetThreadTerminatedEventCount(engine);
+	}
+
+	const TTD_Replay_ThreadTerminatedEvent* ReplayEngine::GetThreadTerminatedEventList()
+	{
+		return this->engine->IReplayEngine->GetThreadTerminatedEventList(engine);
+	}
+
+	const std::vector<TTD_Replay_ThreadTerminatedEvent> ReplayEngine::GetThreadTerminatedEvent()
+	{
+		return std::vector<TTD_Replay_ThreadTerminatedEvent>(this->GetThreadTerminatedEventList(), this->GetThreadTerminatedEventList() + this->GetThreadTerminatedEventCount());
 	}
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <Windows.h>
 
 namespace TTD {
 
@@ -7,8 +9,39 @@ namespace TTD {
 	typedef struct Position {
 		unsigned __int64 Major; // Sequence
 		unsigned __int64 Minor; // Steps
+
+		bool operator < (const Position& other)
+		{
+			if (this->Major == other.Major) 
+			{
+				return this->Minor < other.Minor;
+			}
+			else
+			{
+				return this->Major < other.Major;
+			}
+		}
+
+		bool operator > (const Position& other)
+		{
+			if (this->Major == other.Major)
+			{
+				return this->Minor > other.Minor;
+			}
+			else
+			{
+				return this->Major > other.Major;
+			}
+		}
+
+		bool operator == (const Position& other)
+		{
+			return this->Major == other.Major && this->Minor == other.Minor;
+		}
+
 	} Position;
 
+	static const Position MAX = { -1, -1 };
 
 	// Size: 0xA70
 	struct TTD_Replay_RegisterContext {
@@ -105,11 +138,9 @@ namespace TTD {
 	typedef struct TTD_Replay_ActiveThreadInfo {
 		TTD_Replay_ThreadInfo* info;
 		// next Major:Minor position where this thread is active
-		uint64_t nextMajor;
-		uint64_t nextMinor;
+		Position next;
 		// last Major:Minor position where this thread was active
-		uint64_t lastMajor;
-		uint64_t lastMinor;
+		Position last;
 	}TTD_Replay_ActiveThreadInfo;
 	/*
 	*(_QWORD *)this = &TTD::Replay::Cursor::`vftable'{for `TTD::Replay::ICursor'};
@@ -241,6 +272,23 @@ namespace TTD {
 		unsigned __int64 unk; // Always equal to -2
 	} TTD_Replay_ModuleInstance;
 
+
+	/*!
+	 * \brief	An event type is linked to a thread or a module
+	 *			It will inform on start and end position of the event
+	 */
+	template<typename T>
+	struct TTD_Replay_Event
+	{
+		Position pos;
+		T* info;
+	};
+
+	using TTD_Replay_ModuleLoadedEvent = TTD_Replay_Event<TTD_Replay_Module>;
+	using TTD_Replay_ModuleUnloadedEvent = TTD_Replay_Event<TTD_Replay_Module>;
+	using TTD_Replay_ThreadCreatedEvent = TTD_Replay_Event<TTD_Replay_ThreadInfo>;
+	using TTD_Replay_ThreadTerminatedEvent = TTD_Replay_Event<TTD_Replay_ThreadInfo>;
+
 	/*
 	* TTD::Replay::ReplayEngine *__fastcall TTD::Replay::ReplayEngine::ReplayEngine(TTD::Replay::ReplayEngine *this)
 	*
@@ -270,7 +318,7 @@ namespace TTD {
 		void* unk9;
 		unsigned __int64(__fastcall* GetThreadCount)(TTD_Replay_ReplayEngine* self);
 		//	const struct TTD::Replay::ThreadInfo* (__fastcall* _GetThreadList_ReplayEngine_Replay_TTD__UEBAPEBUThreadInfo_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk11;
+		TTD_Replay_ThreadInfo* (__fastcall* GetThreadList)(TTD_Replay_ReplayEngine* self);
 		//	const unsigned __int64* (__fastcall* _GetThreadFirstPositionIndex_ReplayEngine_Replay_TTD__UEBAPEB_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
 		void* unk12;
 		//	const unsigned __int64* (__fastcall* _GetThreadLastPositionIndex_ReplayEngine_Replay_TTD__UEBAPEB_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
@@ -279,16 +327,12 @@ namespace TTD {
 		void* unk14;
 		//	const unsigned __int64* (__fastcall* _GetThreadLifetimeLastPositionIndex_ReplayEngine_Replay_TTD__UEBAPEB_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
 		void* unk15;
-		//	unsigned __int64(__fastcall* _GetThreadCreatedEventCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk16;
-		//	const struct TTD::Replay::ThreadCreatedEvent* (__fastcall* _GetThreadCreatedEventList_ReplayEngine_Replay_TTD__UEBAPEBUThreadCreatedEvent_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk17;
-		//	unsigned __int64(__fastcall* _GetThreadTerminatedEventCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk18;
-		//	const struct TTD::Replay::ThreadTerminatedEvent* (__fastcall* _GetThreadTerminatedEventList_ReplayEngine_Replay_TTD__UEBAPEBUThreadTerminatedEvent_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk19;
+		unsigned __int64(__fastcall* GetThreadCreatedEventCount)(TTD_Replay_ReplayEngine* self);
+		const TTD_Replay_ThreadCreatedEvent* (__fastcall* GetThreadCreatedEventList)(TTD_Replay_ReplayEngine* self);
+		unsigned __int64(__fastcall* GetThreadTerminatedEventCount)(TTD_Replay_ReplayEngine* self);
+		const TTD_Replay_ThreadTerminatedEvent* (__fastcall* GetThreadTerminatedEventList)(TTD_Replay_ReplayEngine* self);
 		unsigned __int64(__fastcall* GetModuleCount)(TTD_Replay_ReplayEngine* self);
-		struct TTD_Replay_Module* (__fastcall* GetModuleList)(TTD_Replay_ReplayEngine* self);
+		const TTD_Replay_Module* (__fastcall* GetModuleList)(TTD_Replay_ReplayEngine* self);
 		//	unsigned __int64(__fastcall* _GetModuleInstanceCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
 		void* unk22;
 		//	const struct TTD::Replay::ModuleInstance* (__fastcall* _GetModuleInstanceList_ReplayEngine_Replay_TTD__UEBAPEBUModuleInstance_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
@@ -296,13 +340,10 @@ namespace TTD {
 		//	const unsigned __int64* (__fastcall* _GetModuleInstanceUnloadIndex_ReplayEngine_Replay_TTD__UEBAPEB_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
 		void* unk24;
 		//	unsigned __int64(__fastcall* _GetModuleLoadedEventCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk25;
-		//	const struct TTD::Replay::ModuleLoadedEvent* (__fastcall* _GetModuleLoadedEventList_ReplayEngine_Replay_TTD__UEBAPEBUModuleLoadedEvent_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk26;
-		//	unsigned __int64(__fastcall* _GetModuleUnloadedEventCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk27;
-		//	const struct TTD::Replay::ModuleUnloadedEvent* (__fastcall* _GetModuleUnloadedEventList_ReplayEngine_Replay_TTD__UEBAPEBUModuleUnloadedEvent_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk28;
+		unsigned __int64(__fastcall* GetModuleLoadedEventCount)(TTD_Replay_ReplayEngine* self);
+		const TTD_Replay_ModuleLoadedEvent* (__fastcall* GetModuleLoadedEventList)(TTD_Replay_ReplayEngine* self);
+		unsigned __int64(__fastcall* GetModuleUnloadedEventCount)(TTD_Replay_ReplayEngine* self);
+		const TTD_Replay_ModuleUnloadedEvent* (__fastcall* GetModuleUnloadedEventList)(TTD_Replay_ReplayEngine* self);
 		//	unsigned __int64(__fastcall* _GetExceptionEventCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
 		void* unk29;
 		//	const struct TTD::Replay::ExceptionEvent* (__fastcall* _GetExceptionEventList_ReplayEngine_Replay_TTD__UEBAPEBUExceptionEvent_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
@@ -437,7 +478,84 @@ namespace TTD {
 		GuestAddress GetPebAddress();
 		Cursor NewCursor();
 		unsigned __int64 GetModuleCount();
-		struct TTD_Replay_Module* GetModuleList();
+		const TTD_Replay_Module* GetModuleList();
+
+		/*!
+		 * \brief	Number of loaded module event (on load event)
+		 * \return	Number of loaded module event (on load event)
+		 */
+		unsigned __int64 GetModuleLoadedEventCount();
+
+		/*!
+		 * \brief	Array of loaded module event
+		 * \warning	use GetModuleLoadEventCount to know the number of event
+		 * \return	pointer to the first event
+		 */
+		const TTD_Replay_ModuleLoadedEvent* GetModuleLoadedEventList();
+
+		/*!
+		 * \brief	More c++ interface using vector
+		 *			list of module loaded event
+		 * \return	list of TTD_Replay_ModuleLoadedEvent
+		 */
+		const std::vector<TTD_Replay_ModuleLoadedEvent> GetModuleLoadedEvent();
+
+		/*!
+		 * \brief	Number of unloaded module event (on unload event)
+		 * \return	Number of unloaded module event (on unload event)
+		 */
+		unsigned __int64 GetModuleUnloadedEventCount();
+
+		/*!
+		 * \brief	Array of unloaded module event
+		 * \warning	use GetModuleUnloadedEventCount to know the number of event
+		 * \return	pointer to the first event
+		 */
+		const TTD_Replay_ModuleUnloadedEvent* GetModuleUnloadedEventList();
+
+		/*!
+		 * \brief	More c++ interface using vector
+		 * \return	vector of TTD_Replay_ModuleUnloadedEvent
+		 */
+		const std::vector<TTD_Replay_ModuleUnloadedEvent> GetModuleUnloadedEvent();
+
+		/*!
+		 * \brief	Number of created thread event (on create event)
+		 * \return	Number of created thread event (on create event)
+		 */
+		unsigned __int64 GetThreadCreatedEventCount();
+
+		/*!
+		 * \brief	Array of created thread event
+		 * \warning	use GetThreadCreatedEventCount to know the number of event
+		 * \return	pointer to the first event
+		 */
+		const TTD_Replay_ThreadCreatedEvent* GetThreadCreatedEventList();
+
+		/*!
+		 * \brief	More c++ interface using vector
+		 * \return	vector of TTD_Replay_ThreadCreatedEvent
+		 */
+		const std::vector<TTD_Replay_ThreadCreatedEvent> GetThreadCreatedEvent();
+
+		/*!
+		 * \brief	Number of terminated thread event (on terminate event)
+		 * \return	Number of terminated thread event (on terminate event)
+		 */
+		unsigned __int64 GetThreadTerminatedEventCount();
+
+		/*!
+		 * \brief	Array of terminated thread event
+		 * \warning	use GetThreadTerminatedEventCount to know the number of event
+		 * \return	pointer to the first event
+		 */
+		const TTD_Replay_ThreadTerminatedEvent* GetThreadTerminatedEventList();
+
+		/*!
+		 * \brief	More c++ interface using vector
+		 * \return	vector of TTD_Replay_ThreadCreatedEvent
+		 */
+		const std::vector<TTD_Replay_ThreadTerminatedEvent> GetThreadTerminatedEvent();
 	};
 
 }

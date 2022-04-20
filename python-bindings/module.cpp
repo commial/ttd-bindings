@@ -29,14 +29,35 @@ PYBIND11_MODULE(pyTTD, m) {
 
     py::class_<TTD::TTD_Replay_ThreadInfo, std::unique_ptr<TTD::TTD_Replay_ThreadInfo, py::nodelete>>(m, "ThreadInfo")
         .def_readonly("threadid", &TTD::TTD_Replay_ThreadInfo::threadid); 
+
+
+    py::class_<TTD::Position, std::unique_ptr<TTD::Position, py::nodelete>>(m, "Position")
+        .def_readwrite("major", &TTD::Position::Major)
+        .def_readwrite("minor", &TTD::Position::Minor)
+        .def("__repr__",
+            [](const TTD::Position* pos) {
+                char out[256] = { 0 };
+                sprintf_s(out, "<Position %llx:%llx>", pos->Major, pos->Minor);
+                return std::string(out);
+            }
+    );
+
     py::class_<TTD::TTD_Replay_ActiveThreadInfo, std::unique_ptr<TTD::TTD_Replay_ActiveThreadInfo, py::nodelete>>(m, "ActiveThreadInfo")
         .def_property("threadid", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
             return self.info->threadid;
         }, nullptr)
-        .def_readonly("next_major", &TTD::TTD_Replay_ActiveThreadInfo::nextMajor)
-        .def_readonly("next_minor", &TTD::TTD_Replay_ActiveThreadInfo::nextMinor)
-        .def_readonly("last_major", &TTD::TTD_Replay_ActiveThreadInfo::lastMajor)
-        .def_readonly("last_minor", &TTD::TTD_Replay_ActiveThreadInfo::lastMinor);
+        .def_property("next_major", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
+            return self.next.Major;
+        }, nullptr)
+        .def_property("next_minor", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
+            return self.next.Minor;
+        }, nullptr)
+        .def_property("last_major", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
+            return self.last.Major;
+        }, nullptr)
+        .def_property("last_minor", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
+            return self.last.Minor;
+        }, nullptr);
 
     py::class_<TTD::TTD_Replay_RegisterContext, std::unique_ptr<TTD::TTD_Replay_RegisterContext, py::nodelete>>(m, "RegisterContext")
         .def_readonly("cs", &TTD::TTD_Replay_RegisterContext::cs)
@@ -65,17 +86,6 @@ PYBIND11_MODULE(pyTTD, m) {
         .def_readonly("rip", &TTD::TTD_Replay_RegisterContext::rip)
         .def_readonly("fpcw", &TTD::TTD_Replay_RegisterContext::fpcw);
 
-
-    py::class_<TTD::Position, std::unique_ptr<TTD::Position, py::nodelete>>(m, "Position")
-        .def_readwrite("major", &TTD::Position::Major)
-        .def_readwrite("minor", &TTD::Position::Minor)
-        .def("__repr__",
-            [](const TTD::Position* pos) {
-                char out[256] = { 0 };
-                sprintf_s(out, "<Position %llx:%llx>", pos->Major, pos->Minor);
-                return std::string(out);
-            }
-    );
 
     py::class_<TTD::Cursor>(m, "Cursor")
         .def("set_position", py::overload_cast<TTD::Position*>(&TTD::Cursor::SetPosition), py::arg("position"))
@@ -135,7 +145,7 @@ PYBIND11_MODULE(pyTTD, m) {
         .def("get_module_count", &TTD::ReplayEngine::GetModuleCount)
         .def("get_module_list", [](TTD::ReplayEngine& self) {
             std::vector<TTD::TTD_Replay_Module> mods;
-            TTD::TTD_Replay_Module* mod_list = self.GetModuleList();
+            const TTD::TTD_Replay_Module* mod_list = self.GetModuleList();
             for (int i = 0; i < self.GetModuleCount(); i++) {
                 mods.push_back(mod_list[i]);
             }

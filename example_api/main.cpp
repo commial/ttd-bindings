@@ -135,7 +135,7 @@ int main()
 	std::cout << ttdengine.GetModuleCount() << "\n";
 
 	std::cout << "ModuleList:\n";
-	TTD::TTD_Replay_Module* mod_list = ttdengine.GetModuleList();
+	const TTD::TTD_Replay_Module* mod_list = ttdengine.GetModuleList();
 	for (int i = 0; i < ttdengine.GetModuleCount(); i++) {
 		printf("%llx\t%llx\t%ls\n", mod_list[i].base_addr, mod_list[i].imageSize, mod_list[i].path);
 	}
@@ -159,4 +159,48 @@ int main()
 	ttdcursor.AddMemoryWatchpoint(&data);
 	ttdcursor.ReplayForward(&replayrez, last, -1);
 	printf("%llx\n", ttdcursor.GetProgramCounter());
+
+	// Exemple of timeline
+	std::cout << "Timeline" << std::endl;
+	auto moduleLoaded = ttdengine.GetModuleLoadedEvent();
+	auto moduleUnloaded = ttdengine.GetModuleUnloadedEvent();
+	auto threadCreate = ttdengine.GetThreadCreatedEvent();
+	auto threadTerminate = ttdengine.GetThreadTerminatedEvent();
+
+	auto itModuleLoaded = moduleLoaded.begin();
+	auto itModuleUnloaded = moduleUnloaded.begin();
+	auto itThreadCreate = threadCreate.begin();
+	auto itThreadTerminate = threadTerminate.begin();
+
+	while (itModuleLoaded != moduleLoaded.end() || itModuleUnloaded != moduleUnloaded.end() || itThreadCreate != threadCreate.end() || itThreadTerminate != threadTerminate.end())
+	{
+		TTD::Position moduleLoadedPosition = (itModuleLoaded == moduleLoaded.end()) ? TTD::MAX : itModuleLoaded->pos;
+		TTD::Position moduleUnloadedPosition = (itModuleUnloaded == moduleUnloaded.end()) ? TTD::MAX : itModuleUnloaded->pos;
+		TTD::Position threadCreatePosition = (itThreadCreate == threadCreate.end()) ? TTD::MAX : itThreadCreate->pos;
+		TTD::Position threadTerminatePosition = (itThreadTerminate == threadTerminate.end()) ? TTD::MAX : itThreadTerminate->pos;
+
+ 		if (moduleLoadedPosition < moduleUnloadedPosition && moduleLoadedPosition < threadCreatePosition && moduleLoadedPosition < threadTerminatePosition)
+		{
+			std::wcout << "Module Loaded at " << std::hex << itModuleLoaded->pos.Major << ":" << std::hex << itModuleLoaded->pos.Minor << " : " << std::wstring(itModuleLoaded->info->path) << std::endl;
+			itModuleLoaded++;
+		}
+
+		if (moduleUnloadedPosition < moduleLoadedPosition && moduleUnloadedPosition < threadCreatePosition && moduleUnloadedPosition < threadTerminatePosition)
+		{
+			std::wcout << "Module Loaded at " << std::hex << itModuleUnloaded->pos.Major << ":" << std::hex << itModuleUnloaded->pos.Minor << " : " << std::wstring(itModuleUnloaded->info->path) << std::endl;
+			itModuleUnloaded++;
+		}
+
+		if (threadCreatePosition < moduleLoadedPosition && threadCreatePosition < moduleLoadedPosition && threadCreatePosition < threadTerminatePosition)
+		{
+			std::wcout << "Thread Created at " << std::hex << itThreadCreate->pos.Major << ":" << std::hex << itThreadCreate->pos.Minor << " id : " << std::hex << itThreadCreate->info->threadid << std::endl;
+			itThreadCreate++;
+		}
+
+		if (threadTerminatePosition < moduleLoadedPosition && threadTerminatePosition < moduleLoadedPosition && threadTerminatePosition < threadCreatePosition)
+		{
+			std::wcout << "Thread Terminated at " << std::hex << itThreadTerminate->pos.Major << ":" << std::hex << itThreadTerminate->pos.Minor << " id : " << std::hex << itThreadTerminate->info->threadid << std::endl;
+			itThreadTerminate++;
+		}
+	}
 }
