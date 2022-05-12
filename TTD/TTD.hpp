@@ -41,49 +41,7 @@ namespace TTD {
 
 	} Position;
 
-	static const Position MAX = { -1, -1 };
-
-	// Size: 0xA70
-	struct TTD_Replay_RegisterContext {
-		unsigned __int64 unk1;
-		unsigned __int64 unk2;
-		unsigned __int64 unk3;
-		unsigned __int64 unk4;
-		unsigned __int64 unk5;
-		unsigned __int64 unk6;
-		unsigned __int64 unk7;
-		USHORT cs;
-		USHORT ds;
-		USHORT es;
-		USHORT fs;
-		USHORT gs;
-		USHORT ss;
-		unsigned __int32 efl;
-		unsigned __int64 unk8;
-		unsigned __int64 unk9;
-		unsigned __int64 unk10;
-		unsigned __int64 unk11;
-		unsigned __int64 unk12;
-		unsigned __int64 unk13;
-		unsigned __int64 rax;
-		unsigned __int64 rcx;
-		unsigned __int64 rdx;
-		unsigned __int64 rbx;
-		unsigned __int64 rsp;
-		unsigned __int64 rbp;
-		unsigned __int64 rsi;
-		unsigned __int64 rdi;
-		unsigned __int64 r8;
-		unsigned __int64 r9;
-		unsigned __int64 r10;
-		unsigned __int64 r11;
-		unsigned __int64 r12;
-		unsigned __int64 r13;
-		unsigned __int64 r14;
-		unsigned __int64 r15;
-		unsigned __int64 rip;
-		USHORT fpcw;
-	};
+	static const Position MAX = { (uint64_t)-1, (uint64_t)-1 };
 
 	// Size: 0x2280 (1104 64bits)
 	struct TTD_Replay_ExtendedRegisterContext {
@@ -178,7 +136,7 @@ namespace TTD {
 		void* unk15;
 		//  unsigned __int64 (__stdcall __high *_GetBasicReturnValue_Cursor_Replay_TTD__UEBA_KW4ThreadId_3__Z)(enum TTD::ThreadId);
 		void* unk16;
-		struct TTD_Replay_RegisterContext* (__stdcall* GetCrossPlatformContext)(TTD_Replay_ICursor* self, struct TTD_Replay_RegisterContext* out, uint32_t threadId);
+		struct TTD_Replay_RegisterContext* (__stdcall* GetCrossPlatformContext)(TTD_Replay_ICursor* self, void* out, uint32_t threadId);
 		struct TTD_Replay_ExtendedRegisterContext* (__stdcall* GetAvxExtendedContext)(TTD_Replay_ICursor* self, struct TTD_Replay_ExtendedRegisterContext* out);
 		//  unsigned __int64 (__fastcall *_GetModuleCount_Cursor_Replay_TTD__UEBA_KXZ)(TTD::Replay::Cursor *__hidden this);
 		unsigned __int64(__fastcall* GetModuleCount)(TTD_Replay_ICursor* self);
@@ -449,8 +407,60 @@ namespace TTD {
 		struct TTD_Replay_ThreadInfo* GetThreadInfo();
 		struct TTD_Replay_ActiveThreadInfo* GetThreadList();
 		struct TTD_Replay_ThreadInfo* GetThreadInfo(unsigned int ThreadId);
-		struct TTD_Replay_RegisterContext* GetCrossPlatformContext();
-		struct TTD_Replay_RegisterContext* GetCrossPlatformContext(uint32_t threadId);
+
+		/*!
+		 * \brief Get Thread context (current thread) as when you use GetThreadContext API
+		 * \see	https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getthreadcontext
+		 * \return	Context structure depending of the target platform
+		 */
+		void* GetCrossPlatformContext();
+
+		/*!
+		 * \brief Get Thread context for a particular thread id as when you use GetThreadContext API
+		 * \see	https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getthreadcontext
+		 * \param	threadid	thread id
+		 * \return	Context structure depending of the target platform
+		 */
+		void* GetCrossPlatformContext(uint32_t threadId);
+
+		/*!
+		 * \brief	Get thread context, for the current one, for x86 target arch
+		 * \return	x86 thread context
+		 */
+		inline PWOW64_CONTEXT GetContextx86()
+		{
+			return static_cast<PWOW64_CONTEXT>(GetCrossPlatformContext());
+		}
+
+		/*!
+		 * \brief	Get thread context for x86_64 target arch
+		 * \param	threadid	thread id
+		 * \return	x86_64 thread context
+		 */
+		inline PWOW64_CONTEXT GetContextx86(uint32_t threadId)
+		{
+			return static_cast<PWOW64_CONTEXT>(GetCrossPlatformContext(threadId));
+		}
+
+		/*!
+		 * \brief	Get thread context, for the current one, for x86_64 target arch
+		 * \return	x86_64 thread context
+		 */
+		inline PCONTEXT GetContextx86_64()
+		{
+			return static_cast<PCONTEXT>(GetCrossPlatformContext());
+		}
+
+		/*!
+		 * \brief	Get thread context for x86_64 target arch
+		 * \param	threadid	thread id
+		 * \return	x86_64 thread context
+		 */
+		inline PCONTEXT GetContextx86_64(uint32_t threadId)
+		{
+			return static_cast<PCONTEXT>(GetCrossPlatformContext(threadId));
+		}
+
 		struct MemoryBuffer* QueryMemoryBuffer(GuestAddress address, unsigned __int64 size);
 		struct TTD_Replay_ICursorView_ReplayResult* ReplayForward(struct TTD_Replay_ICursorView_ReplayResult* replay_result_out, struct Position* posMax, unsigned __int64 stepCount);
 		struct TTD_Replay_ICursorView_ReplayResult* ReplayBackward(struct TTD_Replay_ICursorView_ReplayResult* replay_result_out, struct Position* posMin, unsigned __int64 stepCount);

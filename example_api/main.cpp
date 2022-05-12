@@ -30,7 +30,7 @@ int main()
 	int result;
 
 	std::cout << "Openning the trace\n";
-	result = ttdengine.Initialize(L"D:\\traces\\demo.run");
+	result = ttdengine.Initialize(L"C:\\Users\\sylvain\\Documents\\ttddbg_test_multithread02.run");
 	if (result == 0) {
 		std::cout << "Fail to open the trace";
 		exit(-1);
@@ -71,7 +71,7 @@ int main()
 	DumpHex(ttdcursor.GetThreadInfo(), 0x20);
 
 	std::cout << "\nSet position to F3:0\n";
-	ttdcursor.SetPosition(0xF3, 0);
+	//ttdcursor.SetPosition(0xF3, 0);
 	std::cout << "\nProgram counter\n";
 	printf("%llx\n", ttdcursor.GetProgramCounter());
 
@@ -80,11 +80,11 @@ int main()
 	DumpHex(ttdcursor.GetThreadInfo(), 0x20);
 
 	std::cout << "\nContext:\n";
-	TTD::TTD_Replay_RegisterContext* ctxt = ttdcursor.GetCrossPlatformContext();
+	auto ctxt = ttdcursor.GetContextx86();
 	DumpHex(ctxt, 0xA70);
-	printf("RCX: %llx\n", ctxt->rcx);
+	printf("RCX: %llx\n", ctxt->Ecx);
 	std::cout << "Query memory @rcx:\n";
-	struct TTD::MemoryBuffer* memorybuffer = ttdcursor.QueryMemoryBuffer(ctxt->rcx, 0x30);
+	struct TTD::MemoryBuffer* memorybuffer = ttdcursor.QueryMemoryBuffer(ctxt->Ecx, 0x30);
 	if (memorybuffer->data == NULL) {
 		printf("Query Memory fail: memory do not exists in trace");
 	}
