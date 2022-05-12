@@ -41,6 +41,7 @@ namespace TTD {
 
 	} Position;
 
+	// MAX position use for computation
 	static const Position MAX = { (uint64_t)-1, (uint64_t)-1 };
 
 	// Size: 0x2280 (1104 64bits)
@@ -136,7 +137,7 @@ namespace TTD {
 		void* unk15;
 		//  unsigned __int64 (__stdcall __high *_GetBasicReturnValue_Cursor_Replay_TTD__UEBA_KW4ThreadId_3__Z)(enum TTD::ThreadId);
 		void* unk16;
-		struct TTD_Replay_RegisterContext* (__stdcall* GetCrossPlatformContext)(TTD_Replay_ICursor* self, void* out, uint32_t threadId);
+		void* (__stdcall* GetCrossPlatformContext)(TTD_Replay_ICursor* self, void* out, uint32_t threadId);
 		struct TTD_Replay_ExtendedRegisterContext* (__stdcall* GetAvxExtendedContext)(TTD_Replay_ICursor* self, struct TTD_Replay_ExtendedRegisterContext* out);
 		//  unsigned __int64 (__fastcall *_GetModuleCount_Cursor_Replay_TTD__UEBA_KXZ)(TTD::Replay::Cursor *__hidden this);
 		unsigned __int64(__fastcall* GetModuleCount)(TTD_Replay_ICursor* self);
