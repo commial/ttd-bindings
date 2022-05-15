@@ -508,7 +508,7 @@ namespace TTD {
 		 *			list of module loaded event
 		 * \return	list of TTD_Replay_ModuleLoadedEvent
 		 */
-		const std::vector<TTD_Replay_ModuleLoadedEvent> GetModuleLoadedEvent();
+		const std::vector<TTD_Replay_ModuleLoadedEvent> GetModuleLoadedEvents();
 
 		/*!
 		 * \brief	Number of unloaded module event (on unload event)
