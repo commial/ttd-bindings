@@ -30,7 +30,14 @@ PYBIND11_MODULE(pyTTD, m) {
     py::class_<TTD::TTD_Replay_ThreadInfo, std::unique_ptr<TTD::TTD_Replay_ThreadInfo, py::nodelete>>(m, "ThreadInfo")
         .def_readonly("threadid", &TTD::TTD_Replay_ThreadInfo::threadid); 
 
+    py::class_<TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>, std::unique_ptr<TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>, py::nodelete>>(m, "ModuleEvent")
+        .def_readonly("position", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>::pos)
+        .def_readonly("info", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>::info);
 
+    py::class_<TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>, std::unique_ptr<TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>, py::nodelete>>(m, "ThreadEvent")
+        .def_readonly("position", &TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>::pos)
+        .def_readonly("info", &TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>::info);
+    
     py::class_<TTD::Position, std::unique_ptr<TTD::Position, py::nodelete>>(m, "Position")
         .def_readwrite("major", &TTD::Position::Major)
         .def_readwrite("minor", &TTD::Position::Minor)
@@ -175,6 +182,42 @@ PYBIND11_MODULE(pyTTD, m) {
         .def("get_last_position", &TTD::ReplayEngine::GetLastPosition)
         .def("get_peb_address", &TTD::ReplayEngine::GetPebAddress)
         .def("new_cursor", &TTD::ReplayEngine::NewCursor)
+        .def("get_module_loaded_event_count", &TTD::ReplayEngine::GetModuleLoadedEventCount)
+        .def("get_module_loaded_event_list", [](TTD::ReplayEngine& self) {
+            std::vector<TTD::TTD_Replay_ModuleLoadedEvent> mods;
+            const TTD::TTD_Replay_ModuleLoadedEvent* mod_list = self.GetModuleLoadedEventList();
+            for (int i = 0; i < self.GetModuleLoadedEventCount(); i++) {
+                mods.push_back(mod_list[i]);
+            }
+            return mods;
+        })
+        .def("get_module_unloaded_event_count", &TTD::ReplayEngine::GetModuleUnloadedEventCount)
+        .def("get_module_unloaded_event_list", [](TTD::ReplayEngine& self) {
+            std::vector<TTD::TTD_Replay_ModuleUnloadedEvent> mods;
+            const TTD::TTD_Replay_ModuleUnloadedEvent* mod_list = self.GetModuleUnloadedEventList();
+            for (int i = 0; i < self.GetModuleUnloadedEventCount(); i++) {
+                mods.push_back(mod_list[i]);
+            }
+            return mods;
+        })
+        .def("get_thread_created_event_count", &TTD::ReplayEngine::GetThreadCreatedEventCount)
+        .def("get_thread_created_event_list", [](TTD::ReplayEngine& self) {
+            std::vector<TTD::TTD_Replay_ThreadCreatedEvent> thrds;
+            const TTD::TTD_Replay_ThreadCreatedEvent* thrd_list = self.GetThreadCreatedEventList();
+            for (int i = 0; i < self.GetThreadCreatedEventCount(); i++) {
+                thrds.push_back(thrd_list[i]);
+            }
+            return thrds;
+        })
+        .def("get_thread_terminated_event_count", &TTD::ReplayEngine::GetThreadTerminatedEventCount)
+        .def("get_thread_terminated_event_list", [](TTD::ReplayEngine& self) {
+            std::vector<TTD::TTD_Replay_ThreadTerminatedEvent> thrds;
+            const TTD::TTD_Replay_ThreadTerminatedEvent* thrd_list = self.GetThreadTerminatedEventList();
+            for (int i = 0; i < self.GetThreadTerminatedEventCount(); i++) {
+                thrds.push_back(thrd_list[i]);
+            }
+            return thrds;
+        })
         .def("get_module_count", &TTD::ReplayEngine::GetModuleCount)
         .def("get_module_list", [](TTD::ReplayEngine& self) {
             std::vector<TTD::TTD_Replay_Module> mods;
