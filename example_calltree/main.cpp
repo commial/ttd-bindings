@@ -265,7 +265,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	std::cout << "ModuleList:\n";
-	TTD::TTD_Replay_Module* mod_list = ttdengine.GetModuleList();
+	const TTD::TTD_Replay_Module* mod_list = ttdengine.GetModuleList();
 	for (int i = 0; i < ttdengine.GetModuleCount(); i++) {
 		printf("%llx\t%llx\t%ls\n", mod_list[i].base_addr, mod_list[i].imageSize, mod_list[i].path);
 
