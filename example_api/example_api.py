@@ -10,6 +10,9 @@ first = eng.get_first_position()
 last = eng.get_last_position()
 print(f"Trace from {first} to {last}")
 
+# Positions can be compared
+assert all([first < last, last > first, first == eng.get_first_position()])
+
 # Print a few information on the trace
 peb = eng.get_peb_address()
 print(f"Peb is at {peb:x}")

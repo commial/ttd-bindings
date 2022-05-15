@@ -40,7 +40,16 @@ PYBIND11_MODULE(pyTTD, m) {
                 sprintf_s(out, "<Position %llx:%llx>", pos->Major, pos->Minor);
                 return std::string(out);
             }
-    );
+        )
+        .def("__lt__", [](TTD::Position &self, const TTD::Position &b) {
+                return self < b;
+            }, py::is_operator())
+        .def("__gt__", [](TTD::Position& self, const TTD::Position& b) {
+                return self > b;
+        }, py::is_operator())
+        .def("__eq__", [](TTD::Position& self, const TTD::Position& b) {
+            return (self.Major == b.Major) && (self.Minor == b.Minor);
+        }, py::is_operator());
 
     py::class_<TTD::TTD_Replay_ActiveThreadInfo, std::unique_ptr<TTD::TTD_Replay_ActiveThreadInfo, py::nodelete>>(m, "ActiveThreadInfo")
         .def_property("threadid", [](TTD::TTD_Replay_ActiveThreadInfo& self) {
