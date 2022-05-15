@@ -30,7 +30,7 @@ int main()
 	int result;
 
 	std::cout << "Openning the trace\n";
-	result = ttdengine.Initialize(L"C:\\Users\\sylvain\\Documents\\ttddbg_test_multithread02.run");
+	result = ttdengine.Initialize(L"D:\\traces\\demo.run");
 	if (result == 0) {
 		std::cout << "Fail to open the trace";
 		exit(-1);
