@@ -527,7 +527,7 @@ namespace TTD {
 		 * \brief	More c++ interface using vector
 		 * \return	vector of TTD_Replay_ModuleUnloadedEvent
 		 */
-		const std::vector<TTD_Replay_ModuleUnloadedEvent> GetModuleUnloadedEvent();
+		const std::vector<TTD_Replay_ModuleUnloadedEvent> GetModuleUnloadedEvents();
 
 		/*!
 		 * \brief	Number of created thread event (on create event)
@@ -546,7 +546,7 @@ namespace TTD {
 		 * \brief	More c++ interface using vector
 		 * \return	vector of TTD_Replay_ThreadCreatedEvent
 		 */
-		const std::vector<TTD_Replay_ThreadCreatedEvent> GetThreadCreatedEvent();
+		const std::vector<TTD_Replay_ThreadCreatedEvent> GetThreadCreatedEvents();
 
 		/*!
 		 * \brief	Number of terminated thread event (on terminate event)
@@ -565,7 +565,7 @@ namespace TTD {
 		 * \brief	More c++ interface using vector
 		 * \return	vector of TTD_Replay_ThreadCreatedEvent
 		 */
-		const std::vector<TTD_Replay_ThreadTerminatedEvent> GetThreadTerminatedEvent();
+		const std::vector<TTD_Replay_ThreadTerminatedEvent> GetThreadTerminatedEvents();
 	};
 
 }

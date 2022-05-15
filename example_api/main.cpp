@@ -80,12 +80,12 @@ int main()
 	DumpHex(ttdcursor.GetThreadInfo(), 0x20);
 
 	std::cout << "\nContext:\n";
-        // Use  ttdcursor.GetContextx86() for x86 context
-        auto ctxt = ttdcursor.GetCrossPlatformContext();
+    // Use  ttdcursor.GetContextx86() for x86 context
+    auto ctxt = ttdcursor.GetContextx86_64();
 	DumpHex(ctxt, 0xA70);
-	printf("RCX: %llx\n", ctxt->Ecx);
+	printf("RCX: %llx\n", ctxt->Rcx);
 	std::cout << "Query memory @rcx:\n";
-	struct TTD::MemoryBuffer* memorybuffer = ttdcursor.QueryMemoryBuffer(ctxt->Ecx, 0x30);
+	struct TTD::MemoryBuffer* memorybuffer = ttdcursor.QueryMemoryBuffer(ctxt->Rcx, 0x30);
 	if (memorybuffer->data == NULL) {
 		printf("Query Memory fail: memory do not exists in trace");
 	}
@@ -163,10 +163,10 @@ int main()
 
 	// Exemple of timeline
 	std::cout << "Timeline" << std::endl;
-	auto moduleLoaded = ttdengine.GetModuleLoadedEvent();
-	auto moduleUnloaded = ttdengine.GetModuleUnloadedEvent();
-	auto threadCreate = ttdengine.GetThreadCreatedEvent();
-	auto threadTerminate = ttdengine.GetThreadTerminatedEvent();
+	auto moduleLoaded = ttdengine.GetModuleLoadedEvents();
+	auto moduleUnloaded = ttdengine.GetModuleUnloadedEvents();
+	auto threadCreate = ttdengine.GetThreadCreatedEvents();
+	auto threadTerminate = ttdengine.GetThreadTerminatedEvents();
 
 	auto itModuleLoaded = moduleLoaded.begin();
 	auto itModuleUnloaded = moduleUnloaded.begin();
@@ -175,10 +175,10 @@ int main()
 
 	while (itModuleLoaded != moduleLoaded.end() || itModuleUnloaded != moduleUnloaded.end() || itThreadCreate != threadCreate.end() || itThreadTerminate != threadTerminate.end())
 	{
-		TTD::Position moduleLoadedPosition = (itModuleLoaded == moduleLoaded.end()) ? TTD::MAX : itModuleLoaded->pos;
-		TTD::Position moduleUnloadedPosition = (itModuleUnloaded == moduleUnloaded.end()) ? TTD::MAX : itModuleUnloaded->pos;
-		TTD::Position threadCreatePosition = (itThreadCreate == threadCreate.end()) ? TTD::MAX : itThreadCreate->pos;
-		TTD::Position threadTerminatePosition = (itThreadTerminate == threadTerminate.end()) ? TTD::MAX : itThreadTerminate->pos;
+		TTD::Position moduleLoadedPosition = (itModuleLoaded == moduleLoaded.end()) ? TTD::POSITION_MAX : itModuleLoaded->pos;
+		TTD::Position moduleUnloadedPosition = (itModuleUnloaded == moduleUnloaded.end()) ? TTD::POSITION_MAX : itModuleUnloaded->pos;
+		TTD::Position threadCreatePosition = (itThreadCreate == threadCreate.end()) ? TTD::POSITION_MAX : itThreadCreate->pos;
+		TTD::Position threadTerminatePosition = (itThreadTerminate == threadTerminate.end()) ? TTD::POSITION_MAX : itThreadTerminate->pos;
 
  		if (moduleLoadedPosition < moduleUnloadedPosition && moduleLoadedPosition < threadCreatePosition && moduleLoadedPosition < threadTerminatePosition)
 		{

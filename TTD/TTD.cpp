@@ -186,7 +186,7 @@ namespace TTD {
 		return this->engine->IReplayEngine->GetModuleLoadedEventList(engine);
 	}
 
-	const std::vector<TTD_Replay_ModuleLoadedEvent> ReplayEngine::GetModuleLoadedEvent()
+	const std::vector<TTD_Replay_ModuleLoadedEvent> ReplayEngine::GetModuleLoadedEvents()
 	{
 		return std::vector<TTD_Replay_ModuleLoadedEvent>(this->GetModuleLoadedEventList(), this->GetModuleLoadedEventList() + this->GetModuleLoadedEventCount());
 	}
@@ -201,7 +201,7 @@ namespace TTD {
 		return this->engine->IReplayEngine->GetModuleUnloadedEventList(engine);
 	}
 
-	const std::vector<TTD_Replay_ModuleUnloadedEvent> ReplayEngine::GetModuleUnloadedEvent()
+	const std::vector<TTD_Replay_ModuleUnloadedEvent> ReplayEngine::GetModuleUnloadedEvents()
 	{
 		return std::vector<TTD_Replay_ModuleUnloadedEvent>(this->GetModuleUnloadedEventList(), this->GetModuleUnloadedEventList() + this->GetModuleUnloadedEventCount());
 	}
@@ -216,7 +216,7 @@ namespace TTD {
 		return this->engine->IReplayEngine->GetThreadCreatedEventList(engine);
 	}
 
-	const std::vector<TTD_Replay_ThreadCreatedEvent> ReplayEngine::GetThreadCreatedEvent()
+	const std::vector<TTD_Replay_ThreadCreatedEvent> ReplayEngine::GetThreadCreatedEvents()
 	{
 		return std::vector<TTD_Replay_ThreadCreatedEvent>(this->GetThreadCreatedEventList(), this->GetThreadCreatedEventList() + this->GetThreadCreatedEventCount());
 	}
@@ -231,7 +231,7 @@ namespace TTD {
 		return this->engine->IReplayEngine->GetThreadTerminatedEventList(engine);
 	}
 
-	const std::vector<TTD_Replay_ThreadTerminatedEvent> ReplayEngine::GetThreadTerminatedEvent()
+	const std::vector<TTD_Replay_ThreadTerminatedEvent> ReplayEngine::GetThreadTerminatedEvents()
 	{
 		return std::vector<TTD_Replay_ThreadTerminatedEvent>(this->GetThreadTerminatedEventList(), this->GetThreadTerminatedEventList() + this->GetThreadTerminatedEventCount());
 	}
