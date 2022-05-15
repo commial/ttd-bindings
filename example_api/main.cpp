@@ -80,7 +80,8 @@ int main()
 	DumpHex(ttdcursor.GetThreadInfo(), 0x20);
 
 	std::cout << "\nContext:\n";
-	auto ctxt = ttdcursor.GetContextx86();
+        // Use  ttdcursor.GetContextx86() for x86 context
+        auto ctxt = ttdcursor.GetCrossPlatformContext();
 	DumpHex(ctxt, 0xA70);
 	printf("RCX: %llx\n", ctxt->Ecx);
 	std::cout << "Query memory @rcx:\n";
