@@ -26,7 +26,7 @@ cursor.set_position(first)
 print(f"PC: {cursor.get_program_counter():x}")
 thrdinfo = cursor.get_thread_info()
 print(f"Thread ID: {thrdinfo.threadid}")
-ctxt = cursor.get_crossplatform_context()
+ctxt = cursor.get_context_x86_64()
 print("RCX: %x" % ctxt.rcx)
 
 # Print loaded modules
