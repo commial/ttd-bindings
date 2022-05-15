@@ -188,7 +188,7 @@ int main()
 
 		if (moduleUnloadedPosition < moduleLoadedPosition && moduleUnloadedPosition < threadCreatePosition && moduleUnloadedPosition < threadTerminatePosition)
 		{
-			std::wcout << "Module Loaded at " << std::hex << itModuleUnloaded->pos.Major << ":" << std::hex << itModuleUnloaded->pos.Minor << " : " << std::wstring(itModuleUnloaded->info->path) << std::endl;
+			std::wcout << "Module Unloaded at " << std::hex << itModuleUnloaded->pos.Major << ":" << std::hex << itModuleUnloaded->pos.Minor << " : " << std::wstring(itModuleUnloaded->info->path) << std::endl;
 			itModuleUnloaded++;
 		}
 
