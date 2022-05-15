@@ -34,24 +34,29 @@ print(f"Modules ({eng.get_module_count()}):")
 for mod in sorted(eng.get_module_list(), key=lambda x: x.base_addr):
     print(f"\t0x{mod.base_addr:x} - 0x{mod.base_addr + mod.image_size:x}\t{mod.path}")
 
-# Print Thread active zones
+# Print an event based timeline
+events = sorted(
+    list((x, "modload") for x in eng.get_module_loaded_event_list())
+    + list((x, "modunload") for x in eng.get_module_unloaded_event_list())
+    + list((x, "threadcreated") for x in eng.get_thread_created_event_list())
+    + list((x, "threadterm") for x in eng.get_thread_terminated_event_list()),
+    key=lambda event:event[0].position
+)
+for event, evtype in events:
+    print(f"[{event.position.major:x}:{event.position.minor:x}]", end=" ")
+    if evtype == "modload":
+        print(f"Module {event.info.path} loaded")
+    elif evtype == "modunload":
+        print(f"Module {event.info.path} unloaded")
+    elif evtype == "threadcreated":
+        print(f"Thread {event.info.threadid:x} created")
+    elif evtype == "threadterm":
+        print(f"Thread {event.info.threadid:x} terminated")
+
+# Print threads' future and past active zone
 print(f"Threads ({cursor.get_thread_count()}):")
-## Save the current position
-position_save = cursor.get_position()
-## Get Threads' starting position
-threads = {} # Thread ID => {"begin": position, "end": position}
-cursor.set_position(first)
 for thread in cursor.get_thread_list():
-    threads.setdefault(thread.threadid, {})["begin"] = f"{thread.next_major:x}:{thread.next_minor:x}"
-## Get Threads' ending position
-cursor.set_position(last)
-for thread in cursor.get_thread_list():
-    threads.setdefault(thread.threadid, {})["end"] = f"{thread.last_major:x}:{thread.last_minor:x}"
-## Restore saved position
-cursor.set_position(position_save)
-## Print out the resulting ranges
-for threadid, info in threads.items():
-    print(f"\t[0x{threadid:x}] {info['begin']} -> {info['end']}")
+    print(f"\t[0x{thread.threadid:x}] last active: {thread.last_major:x}:{thread.last_minor:x}, next: {thread.next_major:x}:{thread.next_minor:x}")
 
 # Read the memory
 print("@128[RCX]: %s" % cursor.read_mem(ctxt.rcx, 16))
