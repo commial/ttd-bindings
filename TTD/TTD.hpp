@@ -42,7 +42,7 @@ namespace TTD {
 	} Position;
 
 	// MAX position use for computation
-	static const Position MAX = { (uint64_t)-1, (uint64_t)-1 };
+	static const Position POSITION_MAX = { (uint64_t)-1, (uint64_t)-1 };
 
 	// Size: 0x2280 (1104 64bits)
 	struct TTD_Replay_ExtendedRegisterContext {
