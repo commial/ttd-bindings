@@ -433,7 +433,7 @@ namespace TTD {
 		}
 
 		/*!
-		 * \brief	Get thread context for x86_64 target arch
+		 * \brief	Get thread context for x86 target arch
 		 * \param	threadid	thread id
 		 * \return	x86_64 thread context
 		 */
