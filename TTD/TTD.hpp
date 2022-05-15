@@ -276,7 +276,6 @@ namespace TTD {
 		//	const struct TTD::Replay::ThreadInfo* (__stdcall __high* _GetThreadInfo_ReplayEngine_Replay_TTD__UEBAAEBUThreadInfo_23_W4UniqueThreadId_23__Z)(enum TTD::Replay::UniqueThreadId);
 		void* unk9;
 		unsigned __int64(__fastcall* GetThreadCount)(TTD_Replay_ReplayEngine* self);
-		//	const struct TTD::Replay::ThreadInfo* (__fastcall* _GetThreadList_ReplayEngine_Replay_TTD__UEBAPEBUThreadInfo_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
 		TTD_Replay_ThreadInfo* (__fastcall* GetThreadList)(TTD_Replay_ReplayEngine* self);
 		//	const unsigned __int64* (__fastcall* _GetThreadFirstPositionIndex_ReplayEngine_Replay_TTD__UEBAPEB_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
 		void* unk12;
