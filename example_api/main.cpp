@@ -71,7 +71,7 @@ int main()
 	DumpHex(ttdcursor.GetThreadInfo(), 0x20);
 
 	std::cout << "\nSet position to F3:0\n";
-	//ttdcursor.SetPosition(0xF3, 0);
+	ttdcursor.SetPosition(0xF3, 0);
 	std::cout << "\nProgram counter\n";
 	printf("%llx\n", ttdcursor.GetProgramCounter());
 
