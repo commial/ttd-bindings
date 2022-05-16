@@ -24,13 +24,25 @@ void callCallback(unsigned __int64 callback_value, TTD::GuestAddress addr_func, 
 	return;
 }
 
+/*
+* @callback_value: value passed at callback registering
+* Returns TRUE to stop execution on break
+*/
+bool memCallback(unsigned __int64 callback_value, TTD::TTD_Replay_MemoryWatchpointResult* mem, struct TTD::TTD_Replay_IThreadView* thread_info) {
+	printf("[MEM CALLBACK] ");
+	printf("callback_value: %llx, guest_addr: %llx, size: %llx, flags: %llx\n", callback_value, mem->addr, mem->size, mem->flags);
+	TTD::Position* current = thread_info->IThreadView->GetPosition(thread_info);
+	printf("Program counter: %llx | Position: %llx:%llx\n", thread_info->IThreadView->GetProgramCounter(thread_info), current->Major, current->Minor);
+	return TRUE;
+}
+
 int main()
 {
 	TTD::ReplayEngine ttdengine = TTD::ReplayEngine();
 	int result;
 
 	std::cout << "Openning the trace\n";
-	result = ttdengine.Initialize(L"D:\\traces\\demo.run");
+	result = ttdengine.Initialize(L"D:\\traces\\lsm_rpc.run");
 	if (result == 0) {
 		std::cout << "Fail to open the trace";
 		exit(-1);
@@ -149,6 +161,7 @@ int main()
 	data.size = 4;
 	data.flags = TTD::BP_FLAGS::READ;
 	ttdcursor.AddMemoryWatchpoint(&data);
+	ttdcursor.SetMemoryWatchpointCallback((TTD::PROC_MemCallback)memCallback, 1234);
 	ttdcursor.ReplayForward(&replayrez, last, -1);
 	printf("%llx\n", ttdcursor.GetProgramCounter());
 	ttdcursor.RemoveMemoryWatchpoint(&data);
