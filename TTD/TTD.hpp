@@ -93,6 +93,11 @@ namespace TTD {
 		READ = 3,
 		EXEC = 4
 	};
+	typedef struct TTD_Replay_MemoryWatchpointResult {
+		GuestAddress addr;
+		unsigned __int64 size;
+		unsigned __int64 flags;
+	} TTD_Replay_MemoryWatchpointResult;
 
 	typedef struct TTD_Replay_ActiveThreadInfo {
 		TTD_Replay_ThreadInfo* info;
@@ -175,8 +180,7 @@ namespace TTD {
 		void(__fastcall* SetPosition)(TTD_Replay_ICursor* self, struct Position*);
 		//  void (__stdcall __high *_SetPositionOnThread_Cursor_Replay_TTD__UEAAXW4UniqueThreadId_23_AEBUPosition_23__Z)(enum TTD::Replay::UniqueThreadId, const struct Position *);
 		void* unk39;
-		//  void (__fastcall *_SetMemoryWatchpointCallback_Cursor_Replay_TTD__UEAAXQ6A_N_KAEBUMemoryWatchpointResult_ICursorView_23_PEBVIThreadView_23__Z_K_Z)(TTD::Replay::Cursor *__hidden this, bool (__stdcall *const)(unsigned __int64, const struct TTD::Replay::ICursorView::MemoryWatchpointResult *, const struct TTD::Replay::IThreadView *), unsigned __int64);
-		void* unk40;
+		void (__fastcall *SetMemoryWatchpointCallback)(TTD_Replay_ICursor* self, bool (__stdcall *const)(unsigned __int64 callback_value, const TTD_Replay_MemoryWatchpointResult* result, struct TTD_Replay_IThreadView* thread_info), unsigned __int64 callback_value);
 		//  void (__fastcall *_SetPositionWatchpointCallback_Cursor_Replay_TTD__UEAAXQ6A_N_KAEBUPosition_23_PEBVIThreadView_23__Z_K_Z)(TTD::Replay::Cursor *__hidden this, bool (__stdcall *const)(unsigned __int64, const struct Position *, const struct TTD::Replay::IThreadView *), unsigned __int64);
 		void* unk41;
 		//  void (__fastcall *_SetGapEventCallback_Cursor_Replay_TTD__UEAAXQ6A_N_KW4GapKind_23_W4GapEventType_23_PEBVIThreadView_23__Z_K_Z)(TTD::Replay::Cursor *__hidden this, bool (__stdcall __high *const)(unsigned __int64, enum TTD::Replay::GapKind, enum TTD::Replay::GapEventType, const struct TTD::Replay::IThreadView *), unsigned __int64);
@@ -386,6 +390,11 @@ namespace TTD {
 	typedef unsigned int(__cdecl* PROC_Initiate)(const char* seed, BYTE* b64rand_out);
 	typedef unsigned int(__cdecl* PROC_Create)(const char* handshake, void* ReplayEngine_out, BYTE* guid_version);
 	typedef void(__stdcall* const PROC_CallCallback)(unsigned __int64 callback_value, GuestAddress addr_func, GuestAddress addr_ret, struct TTD_Replay_IThreadView* thread_info);
+	/*!
+	 * \brief	Callback called on MemoryWatchpoint hit, with hit information
+	 *			Return TRUE to stop execution, FALSE to continue
+	 */
+	typedef bool(__stdcall* const PROC_MemCallback)(unsigned __int64 callback_value, const TTD_Replay_MemoryWatchpointResult* result, struct TTD_Replay_IThreadView* thread_info);
 
 	class Cursor {
 
@@ -465,6 +474,7 @@ namespace TTD {
 		struct TTD_Replay_ICursorView_ReplayResult* ReplayForward(struct TTD_Replay_ICursorView_ReplayResult* replay_result_out, struct Position* posMax, unsigned __int64 stepCount);
 		struct TTD_Replay_ICursorView_ReplayResult* ReplayBackward(struct TTD_Replay_ICursorView_ReplayResult* replay_result_out, struct Position* posMin, unsigned __int64 stepCount);
 		void SetCallReturnCallback(PROC_CallCallback callCallback, unsigned __int64 callback_value);
+		void SetMemoryWatchpointCallback(PROC_MemCallback memCallback, unsigned __int64 callback_value);
 		bool AddMemoryWatchpoint(TTD_Replay_MemoryWatchpointData* data);
 		bool RemoveMemoryWatchpoint(TTD_Replay_MemoryWatchpointData* data);
 		unsigned __int64 GetModuleCount();
