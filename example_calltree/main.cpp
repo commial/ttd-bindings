@@ -218,8 +218,9 @@ int main(int argc, char* argv[]) {
 		printf("Usage:\n");
 		printf("%s [options] trace\n", argv[0]);
 		printf("Options:\n");
-		printf("-b\tStarting position, as 1234:56\n");
-		printf("-e\tEnding position, as 1234:56\n");
+		printf("-b\tStarting position, as 1234:56. If not set, use the first position\n");
+		printf("-e\tEnding position, as 1234:56. If not set, use the last position\n");
+		printf("-t\tThread ID to trace, as 1df4. Use '-t list' to list them. If not set, use the one from position\n");
 		return 0;
 	}
 
@@ -240,15 +241,56 @@ int main(int argc, char* argv[]) {
 		exit(-1);
 	}
 
+	char* tid_arg = getCmdOption(argv, argv + argc, "-t");
+	TTD::Position tid_pos;
+	unsigned __int64 tid;
+	if (tid_arg) {
+		auto threadCreate = ttdengine.GetThreadCreatedEvents();
+		auto itThreadCreate = threadCreate.begin();
+		if (!strncmp(tid_arg, "list", 4)) {
+			// Print the list of Thread ID and exit
+			while (itThreadCreate != threadCreate.end()) {
+				std::wcout << "Thread ID " << std::hex << itThreadCreate->info->threadid << " starting at " << std::hex << itThreadCreate->pos.Major << ":" << std::hex << itThreadCreate->pos.Minor << std::endl;
+				itThreadCreate++;
+			}
+			exit(0);
+		}
+
+		bool found = FALSE;
+		sscanf_s(tid_arg, "%llx", &tid);
+		// Get the first position
+		while (itThreadCreate != threadCreate.end()) {
+			if (itThreadCreate->info->threadid == tid) {
+				found = TRUE;
+				tid_pos.Major = itThreadCreate->pos.Major;
+				tid_pos.Minor = itThreadCreate->pos.Minor;
+				break;
+			}
+			itThreadCreate++;
+		}
+		if (!found) {
+			std::wcerr << "Thread ID " << std::hex << tid << " not found. Use -t list to list them." << std::endl;
+			exit(-1);
+		}
+	}
+
 	// Cursor needed before symbol resolution, to fetch PDB information from trace memory
 	TTD::Cursor ttdcursor = ttdengine.NewCursor();
 	TTD::Position* first = ttdengine.GetFirstPosition();
 	TTD::Position* last = ttdengine.GetLastPosition();
 	char* begin_arg = getCmdOption(argv, argv + argc, "-b");
 	if (begin_arg) {
+		if (tid_arg) {
+			std::wcerr << "-t and -b cannot be used together" << std::endl;
+			exit(-1);
+		}
 		unsigned __int64 Major, Minor;
 		sscanf_s(begin_arg, "%llx:%llx", &Major, &Minor);
 		ttdcursor.SetPosition(Major, Minor);
+	}
+	else if (tid_arg) {
+		first = &tid_pos;
+		ttdcursor.SetPosition(first);
 	}
 	else {
 		ttdcursor.SetPosition(first);
@@ -306,5 +348,6 @@ int main(int argc, char* argv[]) {
 	ttdcursor.SetCallReturnCallback((TTD::PROC_CallCallback) callCallback_tree, 0);
 
 	ttdcursor.ReplayForward(&replayrez, &end, -1);
+	printf("\nTotal instruction executed: 0x%llx\n", replayrez.stepCount);
 	return 0;
 }
