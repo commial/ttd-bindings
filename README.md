@@ -309,7 +309,7 @@ cursor.set_position(first)
 print(f"PC: {cursor.get_program_counter():x}")
 
 # Print RCX
-ctxt = cursor.get_crossplatform_context()
+ctxt = cursor.get_context_x86_64()
 print("RCX: %x" % ctxt.rcx)
 
 # Read the memory at RCX on 16 bytes
