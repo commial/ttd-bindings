@@ -28,15 +28,25 @@ PYBIND11_MODULE(pyTTD, m) {
         .def_readonly("path", &TTD::TTD_Replay_Module::path);
 
     py::class_<TTD::TTD_Replay_ThreadInfo, std::unique_ptr<TTD::TTD_Replay_ThreadInfo, py::nodelete>>(m, "ThreadInfo")
-        .def_readonly("threadid", &TTD::TTD_Replay_ThreadInfo::threadid); 
+        .def_readonly("threadid", &TTD::TTD_Replay_ThreadInfo::threadid);
 
-    py::class_<TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>, std::unique_ptr<TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>, py::nodelete>>(m, "ModuleEvent")
-        .def_readonly("position", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>::pos)
-        .def_readonly("info", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Module>::info);
+    py::class_<TTD::TTD_Replay_Exception, std::unique_ptr<TTD::TTD_Replay_Exception, py::nodelete>>(m, "ExceptionInfo")
+        .def_readonly("exception_code", &TTD::TTD_Replay_Exception::ExceptionCode)
+        .def_readonly("exception_flags", &TTD::TTD_Replay_Exception::ExceptionFlags)
+        .def_readonly("exception_record", &TTD::TTD_Replay_Exception::ExceptionRecord)
+        .def_readonly("exception_address", &TTD::TTD_Replay_Exception::ExceptionAddress);
 
-    py::class_<TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>, std::unique_ptr<TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>, py::nodelete>>(m, "ThreadEvent")
-        .def_readonly("position", &TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>::pos)
-        .def_readonly("info", &TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo>::info);
+    py::class_<TTD::TTD_Replay_Event<TTD::TTD_Replay_Module*>, std::unique_ptr<TTD::TTD_Replay_Event<TTD::TTD_Replay_Module*>, py::nodelete>>(m, "ModuleEvent")
+        .def_readonly("position", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Module*>::pos)
+        .def_readonly("info", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Module*>::info);
+
+    py::class_<TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo*>, std::unique_ptr<TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo*>, py::nodelete>>(m, "ThreadEvent")
+        .def_readonly("position", &TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo*>::pos)
+        .def_readonly("info", &TTD::TTD_Replay_Event<TTD::TTD_Replay_ThreadInfo*>::info);
+
+    py::class_<TTD::TTD_Replay_Event<TTD::TTD_Replay_Exception>, std::unique_ptr<TTD::TTD_Replay_Event<TTD::TTD_Replay_Exception>, py::nodelete>>(m, "ExceptionEvent")
+        .def_readonly("position", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Exception>::pos)
+        .def_readonly("info", &TTD::TTD_Replay_Event<TTD::TTD_Replay_Exception>::info);
     
     py::class_<TTD::Position, std::unique_ptr<TTD::Position, py::nodelete>>(m, "Position")
         .def_readwrite("major", &TTD::Position::Major)
@@ -217,6 +227,15 @@ PYBIND11_MODULE(pyTTD, m) {
                 thrds.push_back(thrd_list[i]);
             }
             return thrds;
+        })
+        .def("get_exception_event_count", &TTD::ReplayEngine::GetExceptionEventCount)
+        .def("get_exception_event_list", [](TTD::ReplayEngine& self) {
+            std::vector<TTD::TTD_Replay_ExceptionEvent> excps;
+            const TTD::TTD_Replay_ExceptionEvent* excp_list = self.GetExceptionEventList();
+            for (int i = 0; i < self.GetExceptionEventCount(); i++) {
+                excps.push_back(excp_list[i]);
+            }
+            return excps;
         })
         .def("get_module_count", &TTD::ReplayEngine::GetModuleCount)
         .def("get_module_list", [](TTD::ReplayEngine& self) {

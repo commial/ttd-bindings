@@ -12,7 +12,7 @@ namespace TTD {
 
 		bool operator < (const Position& other)
 		{
-			if (this->Major == other.Major) 
+			if (this->Major == other.Major)
 			{
 				return this->Minor < other.Minor;
 			}
@@ -88,6 +88,8 @@ namespace TTD {
 		unsigned __int64 size;
 		unsigned __int64 flags;
 	} TTD_Replay_MemoryWatchpointData;
+
+
 	const enum BP_FLAGS {
 		WRITE = 2,
 		READ = 3,
@@ -127,7 +129,7 @@ namespace TTD {
 		struct TTD_Replay_ThreadInfo* (__stdcall* GetThreadInfo)(TTD_Replay_ICursor* self, unsigned int ThreadId);
 		//  __int64 (__fastcall *_GetTebAddress_Cursor_Replay_TTD__UEBA_AW4GuestAddress_Nirvana__W4ThreadId_3__Z)(__int64);
 		void* unk10;
-		struct Position* (__fastcall *GetPosition)(TTD_Replay_ICursor* self, unsigned int ThreadId);
+		struct Position* (__fastcall* GetPosition)(TTD_Replay_ICursor* self, unsigned int ThreadId);
 		//  const struct Position *(__stdcall __high *_GetPreviousPosition_Cursor_Replay_TTD__UEBAAEBUPosition_23_W4ThreadId_3__Z)(enum TTD::ThreadId);
 		void* unk12;
 		GuestAddress(__stdcall* GetProgramCounter)(TTD_Replay_ICursor* self, unsigned int ThreadId);
@@ -164,8 +166,8 @@ namespace TTD {
 		void* unk31;
 		//  enum TTD::Replay::ReplayFlags (__high *_GetReplayFlags_Cursor_Replay_TTD__UEBA_AW4ReplayFlags_23_XZ)(void);
 		void* unk32;
-		bool (__fastcall *AddMemoryWatchpoint)(TTD_Replay_ICursor* self, struct TTD_Replay_MemoryWatchpointData *data);
-		bool (__fastcall *RemoveMemoryWatchpoint)(TTD_Replay_ICursor* self, struct TTD_Replay_MemoryWatchpointData* data);
+		bool(__fastcall* AddMemoryWatchpoint)(TTD_Replay_ICursor* self, struct TTD_Replay_MemoryWatchpointData* data);
+		bool(__fastcall* RemoveMemoryWatchpoint)(TTD_Replay_ICursor* self, struct TTD_Replay_MemoryWatchpointData* data);
 		//  bool (*_AddPositionWatchpoint_Cursor_Replay_TTD__UEAA_NAEBUPositionWatchpointData_23__Z)(TTD::Replay::Cursor *__hidden this, const struct TTD::Replay::PositionWatchpointData *);
 		void* unk35;
 		//  bool (*_RemovePositionWatchpoint_Cursor_Replay_TTD__UEAA_NAEBUPositionWatchpointData_23__Z)(TTD::Replay::Cursor *__hidden this, const struct TTD::Replay::PositionWatchpointData *);
@@ -231,6 +233,22 @@ namespace TTD {
 		unsigned __int64 unk; // Always equal to -2
 	} TTD_Replay_ModuleInstance;
 
+	/*!
+	 * \brief	Exception Handling
+	 *			Very similar to https://docs.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-exception_record64
+	 *			But with alignement issue
+	 */
+	struct TTD_Replay_Exception {
+		PVOID		unk;
+		DWORD		firstChance;
+		DWORD		ExceptionCode;
+		DWORD		ExceptionFlags;
+		DWORD64		ExceptionRecord;
+		DWORD64		ExceptionAddress;
+		DWORD		NumberParameters;
+		DWORD		__unusedAlignment;
+		DWORD64		ExceptionInformation[EXCEPTION_MAXIMUM_PARAMETERS];
+	};
 
 	/*!
 	 * \brief	An event type is linked to a thread or a module
@@ -240,13 +258,14 @@ namespace TTD {
 	struct TTD_Replay_Event
 	{
 		Position pos;
-		T* info;
+		T info;
 	};
 
-	using TTD_Replay_ModuleLoadedEvent = TTD_Replay_Event<TTD_Replay_Module>;
-	using TTD_Replay_ModuleUnloadedEvent = TTD_Replay_Event<TTD_Replay_Module>;
-	using TTD_Replay_ThreadCreatedEvent = TTD_Replay_Event<TTD_Replay_ThreadInfo>;
-	using TTD_Replay_ThreadTerminatedEvent = TTD_Replay_Event<TTD_Replay_ThreadInfo>;
+	using TTD_Replay_ModuleLoadedEvent = TTD_Replay_Event<TTD_Replay_Module*>;
+	using TTD_Replay_ModuleUnloadedEvent = TTD_Replay_Event<TTD_Replay_Module*>;
+	using TTD_Replay_ThreadCreatedEvent = TTD_Replay_Event<TTD_Replay_ThreadInfo*>;
+	using TTD_Replay_ThreadTerminatedEvent = TTD_Replay_Event<TTD_Replay_ThreadInfo*>;
+	using TTD_Replay_ExceptionEvent = TTD_Replay_Event<TTD_Replay_Exception>;
 
 	/*
 	* TTD::Replay::ReplayEngine *__fastcall TTD::Replay::ReplayEngine::ReplayEngine(TTD::Replay::ReplayEngine *this)
@@ -302,10 +321,8 @@ namespace TTD {
 		const TTD_Replay_ModuleLoadedEvent* (__fastcall* GetModuleLoadedEventList)(TTD_Replay_ReplayEngine* self);
 		unsigned __int64(__fastcall* GetModuleUnloadedEventCount)(TTD_Replay_ReplayEngine* self);
 		const TTD_Replay_ModuleUnloadedEvent* (__fastcall* GetModuleUnloadedEventList)(TTD_Replay_ReplayEngine* self);
-		//	unsigned __int64(__fastcall* _GetExceptionEventCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk29;
-		//	const struct TTD::Replay::ExceptionEvent* (__fastcall* _GetExceptionEventList_ReplayEngine_Replay_TTD__UEBAPEBUExceptionEvent_23_XZ)(TTD::Replay::ReplayEngine* __hidden this);
-		void* unk30;
+		unsigned __int64(__fastcall* GetExceptionEventCount)(TTD_Replay_ReplayEngine* self);;
+		const TTD_Replay_ExceptionEvent* (__fastcall* GetExceptionEventList)(TTD_Replay_ReplayEngine* self);
 		//	const struct TTD::Replay::ExceptionEvent* (__fastcall* _GetExceptionAtOrAfterPosition_ReplayEngine_Replay_TTD__UEBAPEBUExceptionEvent_23_AEBUPosition_23__Z)(TTD::Replay::ReplayEngine* __hidden this, const struct Position*);
 		void* unk31;
 		//	unsigned __int64(__fastcall* _GetKeyframeCount_ReplayEngine_Replay_TTD__UEBA_KXZ)(TTD::Replay::ReplayEngine* __hidden this);
@@ -362,7 +379,7 @@ namespace TTD {
 		Position* (*GetPosition)(TTD_Replay_IThreadView* self);
 		// TTD::Replay::ExecutionState::GetPreviousPosition(void)
 		void* unk4;
-		GuestAddress (*GetProgramCounter)(TTD_Replay_IThreadView* self);
+		GuestAddress(*GetProgramCounter)(TTD_Replay_IThreadView* self);
 		// TTD::Replay::ExecutionState::GetStackPointer(void)
 		void* unk6;
 		// TTD::Replay::ExecutionState::GetFramePointer(void)
@@ -566,6 +583,25 @@ namespace TTD {
 		 * \return	vector of TTD_Replay_ThreadCreatedEvent
 		 */
 		const std::vector<TTD_Replay_ThreadTerminatedEvent> GetThreadTerminatedEvents();
+
+		/*!
+		 * \brief	Get the number of exception happened during the trace session
+		 * \return	the number of exceptions
+		 */
+		unsigned __int64 GetExceptionEventCount();
+
+		/*!
+		 * \brief	Array of Exception event
+		 * \warning	use GetExceptionEventCount to know the number of event
+		 * \return	pointer to the first event
+		 */
+		const TTD_Replay_ExceptionEvent* GetExceptionEventList();
+
+		/*!
+		 * \brief	More c++ interface using vector
+		 * \return	vector of TTD_Replay_ExceptionEvent
+		 */
+		const std::vector<TTD_Replay_ExceptionEvent> GetExceptionEvents();
 	};
 
 }

@@ -49,7 +49,7 @@ int main()
 
 	std::cout << "Last Position:\n";
 	TTD::Position* last = ttdengine.GetLastPosition();
-	printf("%llx:%llx\n", last->Major, last->Minor);
+	printf("%llx:%llx\n", last->Major, last->Minor); 
 
 	std::cout << "Peb:\n";
 	printf("%llx\n", ttdengine.GetPebAddress());
@@ -139,6 +139,12 @@ int main()
 	const TTD::TTD_Replay_Module* mod_list = ttdengine.GetModuleList();
 	for (int i = 0; i < ttdengine.GetModuleCount(); i++) {
 		printf("%llx\t%llx\t%ls\n", mod_list[i].base_addr, mod_list[i].imageSize, mod_list[i].path);
+	}
+
+	std::cout << "ExceptionList:" << std::endl;
+	for (const auto& exceptionEvent : ttdengine.GetExceptionEvents())
+	{
+		std::cout << "Exception raised at : 0x" << std::hex << exceptionEvent.info.ExceptionAddress << std::endl;
 	}
 
 	std::cout << "Remove callback\n";
