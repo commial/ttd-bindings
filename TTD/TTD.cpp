@@ -53,7 +53,7 @@ namespace TTD {
 	}
 
 	struct MemoryBuffer* Cursor::QueryMemoryBuffer(GuestAddress address, unsigned __int64 size) {
-		struct MemoryBuffer* memorybuffer = (struct MemoryBuffer*) malloc(sizeof(struct MemoryBuffer));
+		struct MemoryBuffer* memorybuffer = (struct MemoryBuffer*)malloc(sizeof(struct MemoryBuffer));
 		struct TBuffer* buf = (struct TBuffer*)malloc(sizeof(struct TBuffer));
 		if (buf == NULL)
 			return NULL;
@@ -238,5 +238,20 @@ namespace TTD {
 	const std::vector<TTD_Replay_ThreadTerminatedEvent> ReplayEngine::GetThreadTerminatedEvents()
 	{
 		return std::vector<TTD_Replay_ThreadTerminatedEvent>(this->GetThreadTerminatedEventList(), this->GetThreadTerminatedEventList() + this->GetThreadTerminatedEventCount());
+	}
+
+	unsigned __int64 ReplayEngine::GetExceptionEventCount()
+	{
+		return this->engine->IReplayEngine->GetExceptionEventCount(engine);
+	}
+
+	const TTD_Replay_ExceptionEvent* ReplayEngine::GetExceptionEventList()
+	{
+		return this->engine->IReplayEngine->GetExceptionEventList(engine);
+	}
+
+	const std::vector<TTD_Replay_ExceptionEvent> ReplayEngine::GetExceptionEvents()
+	{
+		return std::vector<TTD_Replay_ExceptionEvent>(this->GetExceptionEventList(), this->GetExceptionEventList() + this->GetExceptionEventCount());
 	}
 }
