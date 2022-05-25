@@ -75,6 +75,10 @@ namespace TTD {
 		return this->cursor->ICursor->SetCallReturnCallback(cursor, callCallback, callback_value);
 	}
 
+	void Cursor::SetMemoryWatchpointCallback(PROC_MemCallback memCallback, unsigned __int64 callback_value) {
+		return this->cursor->ICursor->SetMemoryWatchpointCallback(cursor, memCallback, callback_value);
+	}
+
 	Position* Cursor::GetPosition(unsigned int ThreadId) {
 		return this->cursor->ICursor->GetPosition(cursor, ThreadId);
 	}

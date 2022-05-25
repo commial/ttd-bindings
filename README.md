@@ -10,6 +10,7 @@ Bindings (PoC) for [Microsoft WinDBG Time Travel Debugging (TTD)](https://docs.m
 * `example_api/` highlights some of the wrapping
 * `example_diff/` shows how to use the wrapping to perform naive trace diffing
 * `example_calltree/` produces a call tree of a trace excerpt
+* `example_cov/` produces a [Lighthouse](https://github.com/gaasedelen/lighthouse) compatible coverage of modules in a trace excerpt 
 * `python-bindings/` provides Python bindings over TTD
 
 After performing one or several traces using Windbg Preview, one can open the `.run` file:
@@ -275,6 +276,57 @@ ModuleList:
 
 ...
 ```
+
+## Example: coverage
+
+To understand what a code is actually doing, one can extract the instruction coverage of a trace.
+To do so, `example_cov` is a tool which:
+
+* list available modules for filtering
+* for each target, add a breakpoint on execution, from the module's base address to its end
+* register a `MemoryWatchpointCallback`:
+  * track in a set each breakpoint's address hitted
+* run through a part of the trace
+* export the resultings addresses in `module_name.trace.txt` files
+
+Here is an example with a trace of the *Local Session Manager* (`lsm.dll`):
+
+```bash
+# Run the tool
+example_cov.exe -m lsm D:\traces\lsm.run
+# After a few seconds:
+Openning the trace
+Tracking lsm
+Number of entry: 0x1000, current position 13b6:26
+Number of entry: 0x1000, current position c03:9
+Number of entry: 0x2000, current position 134f:5b
+Number of entry: 0x3000, current position 1991:205
+Number of entry: 0x3000, current position 720c:1d
+Number of entry: 0x3000, current position 36af:28
+Number of entry: 0x3000, current position 7b01:10
+Number of entry: 0x4000, current position 100d2:396
+Number of entry: 0x4000, current position a7fd:18
+Number of entry: 0x4000, current position ff7f:17c
+Got 0x42f9 addresses
+Dump to file lsm.trace.txt
+```
+
+The `lsm.trace.txt` file looks like:
+
+```bash
+lsm+1eb0
+lsm+1eb7
+lsm+1eba
+lsm+1ebe
+...
+```
+
+As this format is compatible with [Lighthouse](https://github.com/gaasedelen/lighthouse), one can visualize it in IDA:
+
+![](lsm_coverage.png)
+
+By doing several traces, or one trace with several call splitted using `-b` (*begin*) and `-e` (*end*) arguments, one can obtain overlapping coverage map.
+Diffing them could be a great way to identify specific code snippets.
 
 ## Python
 
