@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "python-bindings", "python-b
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example_cov", "example_cov\example_cov.vcxproj", "{0BE1A525-D873-4630-8432-F9B7BC4EDCEA}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example_tenet", "example_tenet\example_tenet.vcxproj", "{8923F142-E0F7-4595-8B83-1E509100C162}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -71,6 +73,14 @@ Global
 		{0BE1A525-D873-4630-8432-F9B7BC4EDCEA}.Release|x64.Build.0 = Release|x64
 		{0BE1A525-D873-4630-8432-F9B7BC4EDCEA}.Release|x86.ActiveCfg = Release|Win32
 		{0BE1A525-D873-4630-8432-F9B7BC4EDCEA}.Release|x86.Build.0 = Release|Win32
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Debug|x64.ActiveCfg = Debug|x64
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Debug|x64.Build.0 = Debug|x64
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Debug|x86.ActiveCfg = Debug|Win32
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Debug|x86.Build.0 = Debug|Win32
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Release|x64.ActiveCfg = Release|x64
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Release|x64.Build.0 = Release|x64
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Release|x86.ActiveCfg = Release|Win32
+		{8923F142-E0F7-4595-8B83-1E509100C162}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
