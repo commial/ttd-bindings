@@ -11,6 +11,7 @@ Bindings (PoC) for [Microsoft WinDBG Time Travel Debugging (TTD)](https://docs.m
 * `example_diff/` shows how to use the wrapping to perform naive trace diffing
 * `example_calltree/` produces a call tree of a trace excerpt
 * `example_cov/` produces a [Lighthouse](https://github.com/gaasedelen/lighthouse) compatible coverage of modules in a trace excerpt 
+* `example_tenet/` produces a [Tenet](https://github.com/gaasedelen/tenet) compatible trace from a TTD trace
 * `python-bindings/` provides Python bindings over TTD
 
 After performing one or several traces using Windbg Preview, one can open the `.run` file:
@@ -327,6 +328,36 @@ As this format is compatible with [Lighthouse](https://github.com/gaasedelen/lig
 
 By doing several traces, or one trace with several call splitted using `-b` (*begin*) and `-e` (*end*) arguments, one can obtain overlapping coverage map.
 Diffing them could be a great way to identify specific code snippets.
+
+## Example: Trace exploration in IDA
+
+[Tenet](https://github.com/gaasedelen/tenet) is a "Trace Explorer" plug-in for IDA.
+Please refer to the official website for the full feature description.
+
+The `example_tenet` example produces a Tenet compatible trace for a given module, from a TTD trace.
+
+For instance:
+```bash
+# Run the tool, for the module `lsm.dll`
+example_tenet.exe -m lsm D:\traces\lsm.run
+# The output is in `lsm.trace.tenet`
+Openning the trace
+Track c:\windows\system32\lsm.dll [7fffcb3e0000 to 7fffcb491fff]
+Dump to file lsm.trace.tenet
+0x1000 instructions...
+0x2000 instructions...
+0x3000 instructions...
+0x4000 instructions...
+0x5000 instructions...
+0x6000 instructions...
+0x7000 instructions...
+```
+
+As a side note, if the TTD trace is going to other modules (such as `memcpy` implementation), the difference from the `call` instruction and the next one will provide a summary of all memory accesses done by `memcpy`.
+
+The resulting `lsm.trace.tenet` can then be loaded in IDA:
+
+![](tenet.png)
 
 ## Python
 
