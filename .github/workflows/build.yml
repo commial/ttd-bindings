@@ -24,7 +24,7 @@ jobs:
       matrix:
         version: [Debug, Release]
         platform: [x64]
-        project: [example_api, example_calltree, example_diff, example_cov]
+        project: [example_api, example_calltree, example_diff, example_cov, example_tenet]
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
