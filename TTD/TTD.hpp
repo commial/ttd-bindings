@@ -494,7 +494,7 @@ namespace TTD {
 		TTD_Replay_ReplayEngine* engine;
 
 	public:
-		ReplayEngine();
+		ReplayEngine(const wchar_t* ttdReplayPath=L"TTDReplay.dll", const wchar_t* ttdReplayCpuPath=L"TTDReplayCPU.dll");
 
 		/**** Wrapping around the vftable ****/
 		bool Initialize(const wchar_t* trace_filename);

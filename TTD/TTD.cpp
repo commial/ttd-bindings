@@ -100,7 +100,7 @@ namespace TTD {
 		return this->cursor->ICursor->GetModuleList(cursor);
 	}
 
-	ReplayEngine::ReplayEngine() {
+	ReplayEngine::ReplayEngine(const wchar_t* ttdReplayPath, const wchar_t* ttdReplayCpuPath) {
 		HINSTANCE hinstLib;
 		PROC_Initiate InitiateReplayEngineHandshake;
 		PROC_Create CreateReplayEngineWithHandshake;
@@ -109,7 +109,12 @@ namespace TTD {
 		SHA256_CTX ctx;
 		BYTE sha[32];
 
-		hinstLib = LoadLibrary(TEXT("TTDReplay.dll"));
+		hinstLib = LoadLibraryW(ttdReplayCpuPath);
+		if (hinstLib == NULL) {
+			throw std::exception("Unable to find TTDReplayCPU.dll");
+		}
+
+		hinstLib = LoadLibraryW(ttdReplayPath);
 		if (hinstLib == NULL) {
 			throw std::exception("Unable to find TTDReplay.dll");
 		}
