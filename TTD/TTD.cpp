@@ -47,19 +47,26 @@ namespace TTD {
 		return this->GetCrossPlatformContext(0);
 	}
 
+	//The caller should free ctxt after call GetCrossPlatformContext function
 	void* Cursor::GetCrossPlatformContext(uint32_t threadId) {
 		void* ctxt = malloc(0xA70);
+		if (NULL == ctxt)
+			return NULL;
 		return this->cursor->ICursor->GetCrossPlatformContext(cursor, ctxt, threadId);
 	}
 
+	//The caller should free memorybuffer and memorybuffer->data (same value as buf->dst_buffer) after call QueryMemoryBuffer function
 	struct MemoryBuffer* Cursor::QueryMemoryBuffer(GuestAddress address, unsigned __int64 size) {
 		struct MemoryBuffer* memorybuffer = (struct MemoryBuffer*)malloc(sizeof(struct MemoryBuffer));
 		struct TBuffer* buf = (struct TBuffer*)malloc(sizeof(struct TBuffer));
-		if (buf == NULL)
+		if (NULL == buf || NULL == memorybuffer)
 			return NULL;
 		buf->size = size;
 		buf->dst_buffer = (void*)malloc(size);
+		if (NULL == buf->dst_buffer)
+			return NULL;
 		this->cursor->ICursor->QueryMemoryBuffer(cursor, memorybuffer, address, buf, 0);
+		free(buf);
 		return memorybuffer;
 	}
 
@@ -85,6 +92,14 @@ namespace TTD {
 
 	Position* Cursor::GetPosition() {
 		return this->GetPosition(0);
+	}
+
+	Position* Cursor::GetPreviousPosition(unsigned int ThreadId) {
+		return this->cursor->ICursor->GetPreviousPosition(cursor, ThreadId);
+	}
+
+	Position* Cursor::GetPreviousPosition() {
+		return this->GetPreviousPosition(0);
 	}
 
 	bool Cursor::AddMemoryWatchpoint(TTD_Replay_MemoryWatchpointData* data) {
