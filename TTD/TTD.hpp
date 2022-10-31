@@ -98,6 +98,10 @@ namespace TTD {
 		WRITE = 2,
 		EXEC = 4
 	};
+	/*
+	 * This structure is used by the @mem argument of the memory callback
+	 * @flags: MEM_READ_EVENT_FLAG or MEM_WRITE_EVENT_FLAG, if the memory event is resp. a "read" or a "write" event
+	 */
 	typedef struct TTD_Replay_MemoryWatchpointResult {
 		GuestAddress addr;
 		unsigned __int64 size;
