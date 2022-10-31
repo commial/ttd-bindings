@@ -83,6 +83,9 @@ namespace TTD {
 		struct TTD_Replay_IThreadView_vftable* IThreadView;
 	} TTD_Replay_IThreadView;
 
+	#define MEM_READ_EVENT_FLAG 0
+	#define MEM_WRITE_EVENT_FLAG 1
+
 	typedef struct TTD_Replay_MemoryWatchpointData {
 		GuestAddress addr;
 		unsigned __int64 size;
@@ -91,10 +94,14 @@ namespace TTD {
 
 
 	const enum BP_FLAGS {
+		READ = 1,
 		WRITE = 2,
-		READ = 3,
 		EXEC = 4
 	};
+	/*
+	 * This structure is used by the @mem argument of the memory callback
+	 * @flags: MEM_READ_EVENT_FLAG or MEM_WRITE_EVENT_FLAG, if the memory event is resp. a "read" or a "write" event
+	 */
 	typedef struct TTD_Replay_MemoryWatchpointResult {
 		GuestAddress addr;
 		unsigned __int64 size;
@@ -136,7 +143,7 @@ namespace TTD {
 		void* unk10;
 		struct Position* (__fastcall* GetPosition)(TTD_Replay_ICursor* self, unsigned int ThreadId);
 		//  const struct Position *(__stdcall __high *_GetPreviousPosition_Cursor_Replay_TTD__UEBAAEBUPosition_23_W4ThreadId_3__Z)(enum TTD::ThreadId);
-		void* unk12;
+		struct Position* (__fastcall* GetPreviousPosition)(TTD_Replay_ICursor* self, unsigned int ThreadId);
 		GuestAddress(__stdcall* GetProgramCounter)(TTD_Replay_ICursor* self, unsigned int ThreadId);
 		//  enum Nirvana::GuestAddress (__stdcall __high *_GetStackPointer_Cursor_Replay_TTD__UEBA_AW4GuestAddress_Nirvana__W4ThreadId_3__Z)(enum TTD::ThreadId);
 		void* unk14;
@@ -377,7 +384,7 @@ namespace TTD {
 
 	typedef struct TTD_Replay_IThreadView_vftable {
 		// TTD::Replay::ExecutionState::GetThreadInfo(void)
-		void* unk1;
+		struct TTD_Replay_ThreadInfo*(*GetThreadInfo)(TTD_Replay_IThreadView* self);
 		// offset TTD::Replay::ExecutionState::GetTebAddress(void)
 		void* unk2;
 		Position* (*GetPosition)(TTD_Replay_IThreadView* self);
@@ -396,7 +403,7 @@ namespace TTD {
 		// TTD::Replay::ExecutionState::QueryMemoryRange(Nirvana::GuestAddress)
 		void* unk11;
 		// TTD::Replay::ExecutionState::QueryMemoryBuffer(Nirvana::GuestAddress, TTD::TBufferView<0>)
-		void* unk12;
+		struct MemoryBuffer* (*QueryMemoryBuffer)(TTD_Replay_IThreadView* self, struct MemoryBuffer*, GuestAddress, struct TBuffer* buf);
 		// TTD::Replay::ExecutionState::QueryMemoryBufferWithRanges(Nirvana::GuestAddress, TTD::TBufferView<0>, unsigned __int64, TTD::Replay::MemoryRange*)
 		void* unk13;
 		// Destructor
@@ -427,6 +434,8 @@ namespace TTD {
 		void SetPosition(unsigned __int64 Major, unsigned __int64 Minor);
 		struct Position* GetPosition();
 		struct Position* GetPosition(unsigned int ThreadId);
+		struct Position* GetPreviousPosition();
+		struct Position* GetPreviousPosition(unsigned int ThreadId);
 		unsigned __int64 GetThreadCount();
 		GuestAddress GetProgramCounter();
 		GuestAddress GetProgramCounter(unsigned int ThreadId);
