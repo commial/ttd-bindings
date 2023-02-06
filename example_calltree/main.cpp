@@ -14,6 +14,7 @@
 
 #define RSDS_SIGNATURE 'SDSR'
 #define PDB_MAX_SYMBOL_SIZE	1000
+#define STEP_COUNT 100000
 
 //Only for PDB7.0 format!
 typedef struct _CV_INFO_PDB70 {
@@ -37,7 +38,7 @@ BOOL readMemory(void* dest, TTD::GuestAddress addr, unsigned __int64 size, TTD::
 	return TRUE;
 }
 
-BOOL WINAPI GetModulePdbInfo(TTD::Cursor *cursor, TTD::GuestAddress pModuleBase, CV_INFO_PDB70* pPdb70Info)
+BOOL WINAPI GetModulePdbInfo(TTD::Cursor* cursor, TTD::GuestAddress pModuleBase, CV_INFO_PDB70* pPdb70Info)
 {
 	IMAGE_DOS_HEADER		ImageDosHeader;
 	IMAGE_NT_HEADERS		ImageNtHeaders;
@@ -111,7 +112,7 @@ End:
 }
 /**** END PDB ****/
 
- // Indent level. Can be negative if we start inside a function
+// Indent level. Can be negative if we start inside a function
 __int64 g_cur_stack = 0;
 // Current process, used for Symbol loading
 HANDLE g_hProcess;
@@ -295,7 +296,7 @@ int main(int argc, char* argv[]) {
 	else {
 		ttdcursor.SetPosition(first);
 	}
-	
+
 	TTD::Position end;
 	char* end_arg = getCmdOption(argv, argv + argc, "-e");
 	if (end_arg) {
@@ -331,13 +332,13 @@ int main(int argc, char* argv[]) {
 
 		if (!GetPdbFilePath(&ttdcursor, mod_list[i].base_addr, pdb_path, PDB_MAX_SYMBOL_SIZE)) {
 			/*
-			 * If PDB is not available, fallback on the DLL (if available)
-			 * /!\ might not be the same than the one in the trace!
-			 */
+				* If PDB is not available, fallback on the DLL (if available)
+				* /!\ might not be the same than the one in the trace!
+				*/
 			printf(" ... fallback to DLL ... ");
 			StringCbPrintfA((STRSAFE_LPSTR)pdb_path, PDB_MAX_SYMBOL_SIZE, "%S", mod_list[i].path);
 		}
-		if (SymLoadModuleEx(g_hProcess, NULL, pdb_path,	NULL, mod_list[i].base_addr, mod_list[i].imageSize,	NULL, 0))
+		if (SymLoadModuleEx(g_hProcess, NULL, pdb_path, NULL, mod_list[i].base_addr, mod_list[i].imageSize, NULL, 0))
 			printf(" OK (%s)\n", pdb_path);
 		else
 			printf(" SymLoadModuleEx(%s) returned error : %d\n", pdb_path, GetLastError());
@@ -345,9 +346,28 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Set the callback
-	ttdcursor.SetCallReturnCallback((TTD::PROC_CallCallback) callCallback_tree, 0);
+	ttdcursor.SetCallReturnCallback((TTD::PROC_CallCallback)callCallback_tree, 0);
 
-	ttdcursor.ReplayForward(&replayrez, &end, -1);
-	printf("\nTotal instruction executed: 0x%llx\n", replayrez.stepCount);
+	TTD::Position LastPosition;
+	unsigned long long stepCount;
+	unsigned long long totalStepCount = 0;
+
+	for (;;) {
+		ttdcursor.ReplayForward(&replayrez, &end, STEP_COUNT);
+		stepCount = replayrez.stepCount;
+		totalStepCount += stepCount;
+
+		if (replayrez.stepCount < STEP_COUNT) {
+			ttdcursor.SetPosition(&LastPosition);
+			ttdcursor.ReplayForward(&replayrez, &end, stepCount - 1);
+			totalStepCount += stepCount - 1;
+			break;
+		}
+		memcpy(&LastPosition, ttdcursor.GetPosition(), sizeof(LastPosition));
+	}
+
+	TTD::Position* lastPosition = ttdcursor.GetPosition();
+	printf("\nLast cursor position: %llx:%llx\n", lastPosition->Major, lastPosition->Minor);
+	printf("\nTotal instruction executed: 0x%llx\n", totalStepCount);
 	return 0;
 }
