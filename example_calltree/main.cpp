@@ -46,7 +46,7 @@ BOOL WINAPI GetModulePdbInfo(TTD::Cursor* cursor, TTD::GuestAddress pModuleBase,
 	BOOL					bResult = FALSE;
 
 	// Assume 64 bits
-	
+
 	if (!readMemory(&ImageDosHeader, pModuleBase, sizeof(ImageDosHeader), cursor)) goto End;
 	if (!readMemory(&ImageNtHeaders, pModuleBase + ImageDosHeader.e_lfanew, sizeof(ImageNtHeaders), cursor)) goto End;
 	if (!readMemory(&ImageDebugDirectory, pModuleBase + ImageNtHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress, sizeof(ImageDebugDirectory), cursor)) goto End;
@@ -126,7 +126,44 @@ struct ModuleInfo {
 };
 struct ModuleInfo* g_moduleinfo = NULL;
 
-void callCallback_tree(unsigned __int64 callback_value, TTD::GuestAddress addr_func, TTD::GuestAddress addr_ret, struct TTD::TTD_Replay_IThreadView * thread_view) {
+void printResolvedSymbol(HANDLE hProcess, struct ModuleInfo* p_module, TTD::GuestAddress addr_func, BOOL isRet) {
+	// Try to resolve symbol
+	// https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
+
+	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+	DWORD64 dwDisplacement = 0;
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+	TTD::GuestAddress addr_rva = addr_func - p_module->start_addr;
+
+	const char* pszArrow;
+	if (isRet) {
+		pszArrow = "<-";
+	}
+	else {
+		pszArrow = "->";
+	}
+
+	if (SymFromAddr(g_hProcess, addr_func, &dwDisplacement, pSymbol))
+	{
+		if (dwDisplacement != 0) {
+			// Symbol resolved with offset
+			printf("%s %ls!%s+%llx", pszArrow, p_module->name, pSymbol->Name, dwDisplacement);
+		}
+		else {
+			printf("%s %ls!%s", pszArrow, p_module->name, pSymbol->Name);
+		}
+	}
+	else
+	{
+		// Unresolved symbol
+		printf("%s %ls!+%llx", pszArrow, p_module->name, addr_rva);
+	}
+}
+
+
+void callCallback_tree(unsigned __int64 callback_value, TTD::GuestAddress addr_func, TTD::GuestAddress addr_ret, struct TTD::TTD_Replay_IThreadView* thread_view) {
 	// Indentation level printing
 	if (addr_ret == 0) {
 		g_cur_stack -= 1;
@@ -157,37 +194,17 @@ void callCallback_tree(unsigned __int64 callback_value, TTD::GuestAddress addr_f
 	TTD::Position* position = thread_view->IThreadView->GetPosition(thread_view);
 	if (addr_ret == 0) {
 		// Call's end, addr_func is the Call's next instruction
-		printf("<- %ls!+%llx (%llx) [%llx:%llx] RETURN %llx\n", ptr->name, (addr_func - ptr->start_addr), addr_func, position->Major, position->Minor, thread_view->IThreadView->GetBasicReturnValue(thread_view));
+		printResolvedSymbol(g_hProcess, ptr, addr_func, TRUE);
+		// Additionnal info
+		printf(" (%llx) [%llx:%llx] RETURN %llx\n", addr_func, position->Major, position->Minor, thread_view->IThreadView->GetBasicReturnValue(thread_view));
 	}
 	else {
 		// Actual Call
-
-		// Try to resolve symbol
-		// https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
-		char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-		PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-		DWORD64 dwDisplacement = 0;
-		pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-		pSymbol->MaxNameLen = MAX_SYM_NAME;
-		if (SymFromAddr(g_hProcess, addr_func, &dwDisplacement, pSymbol))
-		{
-			// Symbol resolved, potential offset
-			__int64 offset = addr_func-pSymbol->Address;
-			if (offset != 0) {
-				printf("-> %ls!%s+%llx", ptr->name, pSymbol->Name, offset);
-			}
-			else {
-				printf("-> %ls!%s", ptr->name, pSymbol->Name);
-			}
-		}
-		else
-		{
-			// Unresolved symbol
-			printf("-> %ls!+%llx", ptr->name, (addr_func - ptr->start_addr));
-		}
+		printResolvedSymbol(g_hProcess, ptr, addr_func, FALSE);
 		// Additionnal info
 		printf(" (%llx) [%llx:%llx]\n", addr_func, position->Major, position->Minor);
 	}
+	return;
 }
 
 /**** ARGUMENT PARSING ****/
