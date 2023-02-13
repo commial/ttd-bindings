@@ -14,6 +14,7 @@
 
 #define RSDS_SIGNATURE 'SDSR'
 #define PDB_MAX_SYMBOL_SIZE	1000
+#define STEP_COUNT 100000
 
 //Only for PDB7.0 format!
 typedef struct _CV_INFO_PDB70 {
@@ -37,7 +38,7 @@ BOOL readMemory(void* dest, TTD::GuestAddress addr, unsigned __int64 size, TTD::
 	return TRUE;
 }
 
-BOOL WINAPI GetModulePdbInfo(TTD::Cursor *cursor, TTD::GuestAddress pModuleBase, CV_INFO_PDB70* pPdb70Info)
+BOOL WINAPI GetModulePdbInfo(TTD::Cursor* cursor, TTD::GuestAddress pModuleBase, CV_INFO_PDB70* pPdb70Info)
 {
 	IMAGE_DOS_HEADER		ImageDosHeader;
 	IMAGE_NT_HEADERS		ImageNtHeaders;
@@ -45,7 +46,7 @@ BOOL WINAPI GetModulePdbInfo(TTD::Cursor *cursor, TTD::GuestAddress pModuleBase,
 	BOOL					bResult = FALSE;
 
 	// Assume 64 bits
-	
+
 	if (!readMemory(&ImageDosHeader, pModuleBase, sizeof(ImageDosHeader), cursor)) goto End;
 	if (!readMemory(&ImageNtHeaders, pModuleBase + ImageDosHeader.e_lfanew, sizeof(ImageNtHeaders), cursor)) goto End;
 	if (!readMemory(&ImageDebugDirectory, pModuleBase + ImageNtHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG].VirtualAddress, sizeof(ImageDebugDirectory), cursor)) goto End;
@@ -111,7 +112,7 @@ End:
 }
 /**** END PDB ****/
 
- // Indent level. Can be negative if we start inside a function
+// Indent level. Can be negative if we start inside a function
 __int64 g_cur_stack = 0;
 // Current process, used for Symbol loading
 HANDLE g_hProcess;
@@ -125,7 +126,44 @@ struct ModuleInfo {
 };
 struct ModuleInfo* g_moduleinfo = NULL;
 
-void callCallback_tree(unsigned __int64 callback_value, TTD::GuestAddress addr_func, TTD::GuestAddress addr_ret, struct TTD::TTD_Replay_IThreadView * thread_view) {
+void printResolvedSymbol(HANDLE hProcess, struct ModuleInfo* p_module, TTD::GuestAddress addr_func, BOOL isRet) {
+	// Try to resolve symbol
+	// https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
+
+	char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
+	PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+	DWORD64 dwDisplacement = 0;
+	pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+	pSymbol->MaxNameLen = MAX_SYM_NAME;
+	TTD::GuestAddress addr_rva = addr_func - p_module->start_addr;
+
+	const char* pszArrow;
+	if (isRet) {
+		pszArrow = "<-";
+	}
+	else {
+		pszArrow = "->";
+	}
+
+	if (SymFromAddr(g_hProcess, addr_func, &dwDisplacement, pSymbol))
+	{
+		if (dwDisplacement != 0) {
+			// Symbol resolved with offset
+			printf("%s %ls!%s+%llx", pszArrow, p_module->name, pSymbol->Name, dwDisplacement);
+		}
+		else {
+			printf("%s %ls!%s", pszArrow, p_module->name, pSymbol->Name);
+		}
+	}
+	else
+	{
+		// Unresolved symbol
+		printf("%s %ls!+%llx", pszArrow, p_module->name, addr_rva);
+	}
+}
+
+
+void callCallback_tree(unsigned __int64 callback_value, TTD::GuestAddress addr_func, TTD::GuestAddress addr_ret, struct TTD::TTD_Replay_IThreadView* thread_view) {
 	// Indentation level printing
 	if (addr_ret == 0) {
 		g_cur_stack -= 1;
@@ -156,37 +194,17 @@ void callCallback_tree(unsigned __int64 callback_value, TTD::GuestAddress addr_f
 	TTD::Position* position = thread_view->IThreadView->GetPosition(thread_view);
 	if (addr_ret == 0) {
 		// Call's end, addr_func is the Call's next instruction
-		printf("<- %ls!+%llx (%llx) [%llx:%llx] RETURN %llx\n", ptr->name, (addr_func - ptr->start_addr), addr_func, position->Major, position->Minor, thread_view->IThreadView->GetBasicReturnValue(thread_view));
+		printResolvedSymbol(g_hProcess, ptr, addr_func, TRUE);
+		// Additionnal info
+		printf(" (%llx) [%llx:%llx] RETURN %llx\n", addr_func, position->Major, position->Minor, thread_view->IThreadView->GetBasicReturnValue(thread_view));
 	}
 	else {
 		// Actual Call
-
-		// Try to resolve symbol
-		// https://docs.microsoft.com/en-us/windows/win32/debug/retrieving-symbol-information-by-address
-		char buffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
-		PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
-		DWORD64 dwDisplacement = 0;
-		pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-		pSymbol->MaxNameLen = MAX_SYM_NAME;
-		if (SymFromAddr(g_hProcess, addr_func, &dwDisplacement, pSymbol))
-		{
-			// Symbol resolved, potential offset
-			__int64 offset = addr_func-pSymbol->Address;
-			if (offset != 0) {
-				printf("-> %ls!%s+%llx", ptr->name, pSymbol->Name, offset);
-			}
-			else {
-				printf("-> %ls!%s", ptr->name, pSymbol->Name);
-			}
-		}
-		else
-		{
-			// Unresolved symbol
-			printf("-> %ls!+%llx", ptr->name, (addr_func - ptr->start_addr));
-		}
+		printResolvedSymbol(g_hProcess, ptr, addr_func, FALSE);
 		// Additionnal info
 		printf(" (%llx) [%llx:%llx]\n", addr_func, position->Major, position->Minor);
 	}
+	return;
 }
 
 /**** ARGUMENT PARSING ****/
@@ -295,7 +313,7 @@ int main(int argc, char* argv[]) {
 	else {
 		ttdcursor.SetPosition(first);
 	}
-	
+
 	TTD::Position end;
 	char* end_arg = getCmdOption(argv, argv + argc, "-e");
 	if (end_arg) {
@@ -331,13 +349,13 @@ int main(int argc, char* argv[]) {
 
 		if (!GetPdbFilePath(&ttdcursor, mod_list[i].base_addr, pdb_path, PDB_MAX_SYMBOL_SIZE)) {
 			/*
-			 * If PDB is not available, fallback on the DLL (if available)
-			 * /!\ might not be the same than the one in the trace!
-			 */
+				* If PDB is not available, fallback on the DLL (if available)
+				* /!\ might not be the same than the one in the trace!
+				*/
 			printf(" ... fallback to DLL ... ");
 			StringCbPrintfA((STRSAFE_LPSTR)pdb_path, PDB_MAX_SYMBOL_SIZE, "%S", mod_list[i].path);
 		}
-		if (SymLoadModuleEx(g_hProcess, NULL, pdb_path,	NULL, mod_list[i].base_addr, mod_list[i].imageSize,	NULL, 0))
+		if (SymLoadModuleEx(g_hProcess, NULL, pdb_path, NULL, mod_list[i].base_addr, mod_list[i].imageSize, NULL, 0))
 			printf(" OK (%s)\n", pdb_path);
 		else
 			printf(" SymLoadModuleEx(%s) returned error : %d\n", pdb_path, GetLastError());
@@ -345,9 +363,28 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Set the callback
-	ttdcursor.SetCallReturnCallback((TTD::PROC_CallCallback) callCallback_tree, 0);
+	ttdcursor.SetCallReturnCallback((TTD::PROC_CallCallback)callCallback_tree, 0);
 
-	ttdcursor.ReplayForward(&replayrez, &end, -1);
-	printf("\nTotal instruction executed: 0x%llx\n", replayrez.stepCount);
+	TTD::Position LastPosition;
+	unsigned long long stepCount;
+	unsigned long long totalStepCount = 0;
+
+	for (;;) {
+		ttdcursor.ReplayForward(&replayrez, &end, STEP_COUNT);
+		stepCount = replayrez.stepCount;
+		totalStepCount += stepCount;
+
+		if (replayrez.stepCount < STEP_COUNT) {
+			ttdcursor.SetPosition(&LastPosition);
+			ttdcursor.ReplayForward(&replayrez, &end, stepCount - 1);
+			totalStepCount += stepCount - 1;
+			break;
+		}
+		memcpy(&LastPosition, ttdcursor.GetPosition(), sizeof(LastPosition));
+	}
+
+	TTD::Position* lastPosition = ttdcursor.GetPosition();
+	printf("\nLast cursor position: %llx:%llx\n", lastPosition->Major, lastPosition->Minor);
+	printf("\nTotal instruction executed: 0x%llx\n", totalStepCount);
 	return 0;
 }
