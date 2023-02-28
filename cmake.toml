@@ -1,0 +1,41 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[project]
+name = "ttd-bindings"
+
+[options]
+TTD_BUILD_EXAMPLES = "root"
+
+[target.TTD]
+type = "static"
+alias = "TTD::TTD"
+sources = [
+    "TTD/*.cpp",
+    "TTD/*.hpp",
+    "TTD/*.h",
+]
+include-directories = ["TTD"]
+
+[template.example]
+condition = "TTD_BUILD_EXAMPLES"
+type = "executable"
+link-libraries = ["TTD::TTD"]
+
+[target.example_api]
+type = "example"
+sources = ["example_api/main.cpp"]
+
+[target.example_calltree]
+type = "example"
+sources = ["example_calltree/main.cpp"]
+
+[target.example_cov]
+type = "example"
+sources = ["example_cov/main.cpp"]
+
+[target.example_diff]
+type = "example"
+sources = ["example_diff/main.cpp"]
+
+[target.example_tenet]
+type = "example"
+sources = ["example_tenet/main.cpp"]
