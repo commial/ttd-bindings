@@ -26,9 +26,26 @@ endif()
 
 # Options
 option(TTD_BUILD_EXAMPLES "" ${CMKR_ROOT_PROJECT})
+option(TTD_PYTHON_BINDINGS "" ${CMKR_ROOT_PROJECT})
+
+# Variables
+set(PYBIND11_FINDPYTHON ON)
 
 project(ttd-bindings)
 
+include(FetchContent)
+
+if(TTD_PYTHON_BINDINGS) # TTD_PYTHON_BINDINGS
+	message(STATUS "Fetching pybind11 (v2.10.3)...")
+	FetchContent_Declare(pybind11
+		GIT_REPOSITORY
+			"https://github.com/pybind/pybind11"
+		GIT_TAG
+			v2.10.3
+	)
+	FetchContent_MakeAvailable(pybind11)
+
+endif()
 # Target: TTD
 set(TTD_SOURCES
 	"TTD/TTD.cpp"
@@ -51,6 +68,21 @@ target_include_directories(TTD PUBLIC
 	TTD
 )
 
+# Target: pyTTD
+if(TTD_PYTHON_BINDINGS) # TTD_PYTHON_BINDINGS
+	set(pyTTD_SOURCES
+		"python-bindings/module.cpp"
+		cmake.toml
+	)
+
+	pybind11_add_module(pyTTD ${pyTTD_SOURCES})
+	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${pyTTD_SOURCES})
+
+	target_link_libraries(pyTTD PUBLIC
+		TTD::TTD
+	)
+
+endif()
 # Target: example_api
 if(TTD_BUILD_EXAMPLES) # TTD_BUILD_EXAMPLES
 	set(example_api_SOURCES
