@@ -33,7 +33,7 @@ sources = [
     "TTD/*.hpp",
     "TTD/*.h",
 ]
-include-directories = ["TTD"]
+include-directories = ["."]
 
 [target.pyTTD]
 type = "pyd"

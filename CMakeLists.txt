@@ -65,7 +65,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TTD_SOURCES})
 
 add_library(TTD::TTD ALIAS TTD)
 target_include_directories(TTD PUBLIC
-	TTD
+	.
 )
 
 # Target: pyTTD

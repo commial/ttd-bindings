@@ -7,7 +7,7 @@
 #include <set>
 #include <fstream>
 #include <mutex>
-#include "TTD.hpp"
+#include "TTD/TTD.hpp"
 
 // Track memory accesses between two trace lines
 std::vector<TTD::TTD_Replay_MemoryWatchpointResult*> memsinfo;

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <strsafe.h>
 #include <dbghelp.h>
-#include "utils.h"
-#include "TTD.hpp"
+#include "TTD/utils.h"
+#include "TTD/TTD.hpp"
 
 
 /**** PDB ****/

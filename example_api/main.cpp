@@ -1,8 +1,8 @@
 #include <windows.h> 
 #include <stdio.h> 
 #include <iostream>
-#include "utils.h"
-#include "TTD.hpp"
+#include "TTD/utils.h"
+#include "TTD/TTD.hpp"
 
 /*
 @callback_value: value passed at callback registering
