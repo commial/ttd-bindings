@@ -1,8 +1,8 @@
 #include <windows.h> 
 #include <stdio.h> 
 #include <iostream>
-#include "utils.h"
-#include "TTD.hpp"
+#include "TTD/utils.h"
+#include "TTD/TTD.hpp"
 
 /*
 @callback_value: value passed at callback registering
@@ -15,7 +15,7 @@ OR
 */
 void callCallback(unsigned __int64 callback_value, TTD::GuestAddress addr_func, TTD::GuestAddress addr_ret, struct TTD::TTD_Replay_IThreadView* thread_info) {
 	printf("[CALL CALLBACK] ");
-	printf("arg1: %llx, arg2: %llx, arg3: %llx, arg4: %llx\n", callback_value, addr_func, addr_ret, thread_info);
+	printf("arg1: %llx, arg2: %llx, arg3: %llx, arg4: %p\n", callback_value, addr_func, addr_ret, thread_info);
 	TTD::Position* current = thread_info->IThreadView->GetPosition(thread_info);
 	printf("Program counter: %llx | Position: %llx:%llx\n", thread_info->IThreadView->GetProgramCounter(thread_info), current->Major, current->Minor);
 	if (addr_ret == 0) {
@@ -28,7 +28,7 @@ void callCallback(unsigned __int64 callback_value, TTD::GuestAddress addr_func, 
 * @callback_value: value passed at callback registering
 * Returns TRUE to stop execution on break
 */
-bool memCallback(unsigned __int64 callback_value, TTD::TTD_Replay_MemoryWatchpointResult* mem, struct TTD::TTD_Replay_IThreadView* thread_info) {
+bool __stdcall memCallback(unsigned __int64 callback_value, const TTD::TTD_Replay_MemoryWatchpointResult* mem, struct TTD::TTD_Replay_IThreadView* thread_info) {
 	printf("[MEM CALLBACK] ");
 	printf("callback_value: %llx, guest_addr: %llx, size: %llx, flags: %llx\n", callback_value, mem->addr, mem->size, mem->flags);
 	TTD::Position* current = thread_info->IThreadView->GetPosition(thread_info);
@@ -167,7 +167,7 @@ int main()
 	data.size = 4;
 	data.flags = TTD::BP_FLAGS::READ;
 	ttdcursor.AddMemoryWatchpoint(&data);
-	ttdcursor.SetMemoryWatchpointCallback((TTD::PROC_MemCallback)memCallback, 1234);
+	ttdcursor.SetMemoryWatchpointCallback(memCallback, 1234);
 	ttdcursor.ReplayForward(&replayrez, last, -1);
 	printf("%llx\n", ttdcursor.GetProgramCounter());
 	ttdcursor.RemoveMemoryWatchpoint(&data);

@@ -6,17 +6,17 @@
 #include <set>
 #include <fstream>
 #include <mutex>
-#include "TTD.hpp"
+#include "TTD/TTD.hpp"
 
 std::set<TTD::GuestAddress> reached_addrs;
 std::mutex set_access;
 
-bool memCallback(unsigned __int64 callback_value, TTD::TTD_Replay_MemoryWatchpointResult* mem, struct TTD::TTD_Replay_IThreadView* thread_info) {
+bool __stdcall memCallback(unsigned __int64 callback_value, const TTD::TTD_Replay_MemoryWatchpointResult* mem, struct TTD::TTD_Replay_IThreadView* thread_info) {
 	set_access.lock();
 	reached_addrs.insert(mem->addr);
 	set_access.unlock();
 
-	int size = reached_addrs.size();
+	auto size = reached_addrs.size();
 	if (size % 0x1000 == 0) {
 		TTD::Position* current = thread_info->IThreadView->GetPosition(thread_info);
 		printf("Number of entry: 0x%llx, current position %llx:%llx\n", size, current->Major, current->Minor);
@@ -47,7 +47,7 @@ std::vector<std::wstring> extractModules(char* mod_arg) {
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
 	std::string mod_arg_str(mod_arg);
-	auto start = 0U;
+	size_t start = 0;
 	auto end = mod_arg_str.find(",");
 	while (end != std::string::npos)
 	{
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 	}
 
 	// Enable memory tracking
-	ttdcursor.SetMemoryWatchpointCallback((TTD::PROC_MemCallback)memCallback, 0);
+	ttdcursor.SetMemoryWatchpointCallback(memCallback, 0);
 
 	// Launch the replay
 	TTD::TTD_Replay_ICursorView_ReplayResult replayrez;

@@ -7,7 +7,7 @@
 #include <set>
 #include <fstream>
 #include <mutex>
-#include "TTD.hpp"
+#include "TTD/TTD.hpp"
 
 // Track memory accesses between two trace lines
 std::vector<TTD::TTD_Replay_MemoryWatchpointResult*> memsinfo;
@@ -23,7 +23,7 @@ void cleanMemsinfo() {
 /* Lock for memsinfo writing in memory callback */
 std::mutex set_accessmems;
 
-bool memCallback(unsigned __int64 callback_value, TTD::TTD_Replay_MemoryWatchpointResult* mem, struct TTD::TTD_Replay_IThreadView* thread_info) {
+bool __stdcall memCallback(unsigned __int64 callback_value, const TTD::TTD_Replay_MemoryWatchpointResult* mem, struct TTD::TTD_Replay_IThreadView* thread_info) {
 	TTD::TTD_Replay_MemoryWatchpointResult* temp = (TTD::TTD_Replay_MemoryWatchpointResult*) malloc(sizeof(TTD::TTD_Replay_MemoryWatchpointResult));
 	memcpy(temp, mem, sizeof(TTD::TTD_Replay_MemoryWatchpointResult));
 	set_accessmems.lock();
@@ -82,6 +82,7 @@ void dumpContext(std::ofstream& fdesc, CONTEXT* old, CONTEXT* newc, TTD::Cursor 
 		struct TTD::MemoryBuffer* memorybuffer = ttdcursor.QueryMemoryBuffer((*itMems)->addr, (*itMems)->size);
 		if (memorybuffer->data == NULL) {
 			std::wcerr << "Query Memory FAIL: memory do not exists in trace";
+			continue;
 		}
 		if ((*itMems)->flags == 1) { // WRITE
 			fdesc << ",mw=0x" << std::hex << memorybuffer->addr << ":";
@@ -227,7 +228,7 @@ int main(int argc, char** argv)
 	data.size = 0xFFFFFFFFFFFFFFFF;
 	data.flags = TTD::BP_FLAGS::WRITE | TTD::BP_FLAGS::READ;
 	ttdcursor.AddMemoryWatchpoint(&data);
-	ttdcursor.SetMemoryWatchpointCallback((TTD::PROC_MemCallback)memCallback, 0);
+	ttdcursor.SetMemoryWatchpointCallback(memCallback, 0);
 
 	for (;;) {
 		ttdcursor.ReplayForward(&temp_result, &end, 1);

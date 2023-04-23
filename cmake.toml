@@ -1,0 +1,61 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[project]
+name = "ttd-bindings"
+
+[options]
+TTD_BUILD_EXAMPLES = "root"
+TTD_PYTHON_BINDINGS = "root"
+
+[variables]
+PYBIND11_FINDPYTHON = true
+
+[fetch-content.pybind11]
+condition = "TTD_PYTHON_BINDINGS"
+git = "https://github.com/pybind/pybind11"
+tag = "v2.10.3"
+
+[template.pyd]
+condition = "TTD_PYTHON_BINDINGS"
+type = "shared"
+add-function = "pybind11_add_module"
+pass-sources = true
+
+[template.example]
+condition = "TTD_BUILD_EXAMPLES"
+type = "executable"
+link-libraries = ["TTD::TTD"]
+
+[target.TTD]
+type = "static"
+alias = "TTD::TTD"
+sources = [
+    "TTD/*.cpp",
+    "TTD/*.hpp",
+    "TTD/*.h",
+]
+include-directories = ["."]
+
+[target.pyTTD]
+type = "pyd"
+sources = ["python-bindings/module.cpp"]
+link-libraries = ["TTD::TTD"]
+
+[target.example_api]
+type = "example"
+sources = ["example_api/main.cpp"]
+
+[target.example_calltree]
+type = "example"
+sources = ["example_calltree/main.cpp"]
+
+[target.example_cov]
+type = "example"
+sources = ["example_cov/main.cpp"]
+
+[target.example_diff]
+type = "example"
+sources = ["example_diff/main.cpp"]
+
+[target.example_tenet]
+type = "example"
+sources = ["example_tenet/main.cpp"]

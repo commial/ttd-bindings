@@ -3,8 +3,8 @@
 #include <iostream>
 #include <strsafe.h>
 #include <dbghelp.h>
-#include "utils.h"
-#include "TTD.hpp"
+#include "TTD/utils.h"
+#include "TTD/TTD.hpp"
 
 
 /**** PDB ****/
@@ -27,7 +27,7 @@ typedef struct _CV_INFO_PDB70 {
 BOOL readMemory(void* dest, TTD::GuestAddress addr, unsigned __int64 size, TTD::Cursor* cursor) {
 	BOOL result = TRUE;
 	struct TTD::MemoryBuffer* memorybuffer = cursor->QueryMemoryBuffer(addr, size);
-	if (memorybuffer->data == NULL or memorybuffer->size != size) {
+	if (memorybuffer->data == NULL || memorybuffer->size != size) {
 		result = FALSE;
 	}
 	else {
@@ -79,9 +79,9 @@ BOOL WINAPI GetPdbFilePath(TTD::Cursor* cursor, TTD::GuestAddress pModuleBase, c
 		char* pStar = NULL;
 		if (GetEnvironmentVariableA("_NT_SYMBOL_PATH", NtSymbolPath, sizeof(NtSymbolPath)) == 0) goto End;
 
-		iResult = sscanf_s(NtSymbolPath, "srv*%259s", SymbolPath, sizeof(SymbolPath));
+		iResult = sscanf_s(NtSymbolPath, "srv*%259s", SymbolPath, (unsigned int)sizeof(SymbolPath));
 		if (iResult == 0) {
-			iResult = sscanf_s(NtSymbolPath, "SRV*%259s", SymbolPath, sizeof(SymbolPath));
+			iResult = sscanf_s(NtSymbolPath, "SRV*%259s", SymbolPath, (unsigned int)sizeof(SymbolPath));
 			if (iResult == 0) goto End;
 		}
 		pStar = strchr(SymbolPath + 4, '*');
@@ -355,7 +355,7 @@ int main(int argc, char* argv[]) {
 			printf(" ... fallback to DLL ... ");
 			StringCbPrintfA((STRSAFE_LPSTR)pdb_path, PDB_MAX_SYMBOL_SIZE, "%S", mod_list[i].path);
 		}
-		if (SymLoadModuleEx(g_hProcess, NULL, pdb_path, NULL, mod_list[i].base_addr, mod_list[i].imageSize, NULL, 0))
+		if (SymLoadModuleEx(g_hProcess, NULL, pdb_path, NULL, mod_list[i].base_addr, (DWORD)mod_list[i].imageSize, NULL, 0))
 			printf(" OK (%s)\n", pdb_path);
 		else
 			printf(" SymLoadModuleEx(%s) returned error : %d\n", pdb_path, GetLastError());

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
-#include "TTD.hpp"
+#include "TTD/TTD.hpp"
 
 /*
 @callback_value: value passed at callback registering
@@ -129,7 +129,7 @@ deb:
 	TTD::Position* cur2 = ttdcursor2.GetPosition();
 
 	while (step_size > 0) {
-		printf("STEP %d\n", step_size);
+		printf("STEP %llu\n", step_size);
 		cur = ttdcursor.GetPosition();
 		cur2 = ttdcursor2.GetPosition();
 		printf("Trace 1: %llx:%llx\t| Trace 2: %llx:%llx\n", cur->Major, cur->Minor, cur2->Major, cur2->Minor);
@@ -207,7 +207,7 @@ deb:
 		step_size = DEFAULT_STEP_SIZE;
 
 		// Remove no-more-used stacked elements
-		for (int j = g_func_stack.size(); j > stack_high; j--) {
+		for (auto j = g_func_stack.size(); j > stack_high; j--) {
 			g_func_stack.pop_back();
 			g_func_stack2.pop_back();
 			g_ret_stack.pop_back();
