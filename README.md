@@ -71,7 +71,7 @@ First, a trace is made on the Domain controller's `lsass.exe` while attempting t
 Then, the trace is loaded in Windbg Preview for analysis. We first find one of the entrypoint, for instance by looking at the callstack during some of the calls.
 As a result, we saw that `ntdsai!LDAP_CONN::ModifyRequest` seems to be called when a LDAP request is made. This method is called twice, as expected:
 
-![](timeline.png)
+![](assets/timeline.png)
 
 The first time, it quickly fails; the second, it processes the request, taking more time.
 
@@ -324,7 +324,7 @@ lsm+1ebe
 
 As this format is compatible with [Lighthouse](https://github.com/gaasedelen/lighthouse), one can visualize it in IDA:
 
-![](lsm_coverage.png)
+![](assets/lsm_coverage.png)
 
 By doing several traces, or one trace with several call splitted using `-b` (*begin*) and `-e` (*end*) arguments, one can obtain overlapping coverage map.
 Diffing them could be a great way to identify specific code snippets.
@@ -357,7 +357,7 @@ As a side note, if the TTD trace is going to other modules (such as `memcpy` imp
 
 The resulting `lsm.trace.tenet` can then be loaded in IDA:
 
-![](tenet.png)
+![](assets/tenet.png)
 
 ## Python
 
